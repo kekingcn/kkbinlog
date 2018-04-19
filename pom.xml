@@ -1,0 +1,118 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.keking.project</groupId>
+    <artifactId>bin-log-distributor</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>bin-log-distributor-app</module>
+        <module>bin-log-distributor-param</module>
+        <module>bin-log-distributor-pub</module>
+        <module>bin-log-distributor-pub-redis</module>
+        <module>bin-log-distributor-client</module>
+        <module>bin-log-distributor-client-redis</module>
+    </modules>
+
+    <name>bin-log-distributor</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <appName>binLogDistributor</appName>
+        <version>0.1.0-SNAPSHOT</version>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <build.profile.id>prod</build.profile.id>
+                <!-- redis -->
+                <redis.host>10.19.122.101</redis.host>
+                <redis.port>6379</redis.port>
+                <!-- 日志存放地址 -->
+                <logging.path>/data/logs/${appName}</logging.path>
+            </properties>
+        </profile>
+        <profile>
+            <id>uat</id>
+            <properties>
+                <build.profile.id>uat</build.profile.id>
+                <!--redis-->
+                <redis.host>10.19.140.7</redis.host>
+                <redis.port>6379</redis.port>
+                <!-- 日志存放地址 -->
+                <logging.path>/data/logs/${appName}</logging.path>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev204</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <build.profile.id>dev</build.profile.id>
+                <!-- redis -->
+                <redis.host>192.168.1.204</redis.host>
+                <!-- 日志存放地址 -->
+                <logging.path>/home/it/${appName}/logs</logging.path>
+                <redis.port>6379</redis.port>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <build.profile.id>dev</build.profile.id>
+                <!-- redis -->
+                <redis.host>192.168.1.204</redis.host>
+                <!-- 日志存放地址 -->
+                <logging.path>${basedir}/logs</logging.path>
+                <redis.port>6379</redis.port>
+            </properties>
+        </profile>
+    </profiles>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <!-- distribute目录 -->
+    <distributionManagement>
+        <repository>
+            <id>repo</id>
+            <name>User Project Releases</name>
+            <url>http://192.168.1.204:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>repo</id>
+            <name>User Project SNAPSHOTS</name>
+            <url>http://192.168.1.204:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

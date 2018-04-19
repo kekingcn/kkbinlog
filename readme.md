@@ -6,7 +6,7 @@
 
 ![示意图](Picture1.png)
 # 2 使用方式
->从bin-log-distributor-app到client数据分发方式的默认实现为redis，如果要开发基于其他的比如mq，只需要分别实现`bin-log-distributor-pub`下的`DataPublisher`接口与`bin-log-distributor-client`下的即可
+>从bin-log-distributor-app到client数据分发方式的默认实现为redis，如果要开发基于其他的比如mq，只需要分别实现`bin-log-distributor-pub`下的`DataPublisher`接口与`bin-log-distributor-client`下的`DatabaseEventHandler`接口即可
 ## 2.1 服务端
 服务端是项目中`bin-log-distributor-app`模块，在[mysql-binlog-connector-java](服务端是项目中`bin-log-distributor-app`模块，在[mysql-binlog-connector-java]()提供了监听mysql数据库二进制日志的功能
 )基础上提供了监听mysql数据库二进制日志并进行分发的功能
@@ -61,7 +61,7 @@ appName=lbt-service-ext
  * NONE -> 无序
  */
 @Service
-@HandleDatabaseEvent(database = "Rana_G", table = "PTP_PROJ_REP_HIS", events = {DatabaseEvent.UPDATE_ROWS, DatabaseEvent.DELETE_ROWS},lockLevel = LockLevel.TABLE)
+@HandleDatabaseEvent(database = "test", table = "products", events = {DatabaseEvent.UPDATE_ROWS, DatabaseEvent.DELETE_ROWS},lockLevel = LockLevel.TABLE)
 public class ProjRepHisDatabaseEventHandler implements DatabaseEventHandler {
     private static final Logger logger = LoggerFactory.getLogger(ProjRepHisDatabaseEventHandler.class);
 

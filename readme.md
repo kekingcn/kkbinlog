@@ -102,7 +102,7 @@ public class DatabaseEventListener {
 ```
 
 # 2.3 前端管理模块
->前端管理服务模块是基于vue的管理各个应用监听状况的管理界面
+>详见[bin-log-distributor-frontend](./bin-log-distributor-frontend/README.md)模块
  
 # 3 其他
 

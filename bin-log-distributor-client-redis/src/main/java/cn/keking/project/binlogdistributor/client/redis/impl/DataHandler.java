@@ -19,7 +19,9 @@ import java.util.logging.Logger;
 /**
  * @author zhenhui
  * @Ddate Created in 2018/2018/4/4/4:35 PM
- * @modified by
+ * @modified by chenjh
+ *
+ * @changeLog 2018/10/16 修复redis上锁等待时间
  */
 public class DataHandler implements Runnable {
     private final static Logger log = Logger.getLogger(DataHandler.class.toString());
@@ -35,6 +37,17 @@ public class DataHandler implements Runnable {
     private RedissonClient redissonClient;
     private String errMapKey;
     private String dataKeyLock;
+
+    /**
+     * redis上锁最大等待时间,单位毫秒
+     */
+    private int maxWaitTime = 10 * 1000;
+
+    /**
+     * redis锁自动释放时间,单位毫秒
+     */
+    private int releaseLockTime = 30 * 1000;
+
     /**
      * 重试次数
      */
@@ -64,7 +77,7 @@ public class DataHandler implements Runnable {
                 doRunWithoutLock();
             } else {
                 RLock lock = redissonClient.getLock(dataKeyLock);
-                if (lock.tryLock(0, 3 * retryInterval, TimeUnit.MILLISECONDS)) {
+                if (lock.tryLock(maxWaitTime, releaseLockTime, TimeUnit.MILLISECONDS)) {
                     DATA_KEY_IN_PROCESS.add(dataKey);
                     doRunWithLock(lock);
                     lock.unlock();
@@ -88,7 +101,7 @@ public class DataHandler implements Runnable {
     private void doRunWithLock(RLock lock) throws InterruptedException {
         RQueue<EventBaseDTO> queue = redissonClient.getQueue(dataKey);
         EventBaseDTO dto;
-        while (lock.tryLock(0, 3 * retryInterval, TimeUnit.MILLISECONDS) && (dto = queue.peek()) != null) {
+        while (lock.tryLock(maxWaitTime, releaseLockTime, TimeUnit.MILLISECONDS) && (dto = queue.peek()) != null) {
             if (doHandleWithLock(dto, 0) && lock.isHeldByCurrentThread()) {
                 queue.poll();
             }
@@ -154,6 +167,21 @@ public class DataHandler implements Runnable {
         }
     }
 
+    public int getMaxWaitTime() {
+        return maxWaitTime;
+    }
+
+    public void setMaxWaitTime(int maxWaitTime) {
+        this.maxWaitTime = maxWaitTime;
+    }
+
+    public int getReleaseLockTime() {
+        return releaseLockTime;
+    }
+
+    public void setReleaseLockTime(int releaseLockTime) {
+        this.releaseLockTime = releaseLockTime;
+    }
 
     public int getRetryTimes() {
         return retryTimes;

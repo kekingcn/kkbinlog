@@ -14,6 +14,7 @@
         <module>bin-log-distributor-pub-redis</module>
         <module>bin-log-distributor-client</module>
         <module>bin-log-distributor-client-redis</module>
+        <module>bin-log-distributor-example</module>
     </modules>
 
     <name>bin-log-distributor</name>

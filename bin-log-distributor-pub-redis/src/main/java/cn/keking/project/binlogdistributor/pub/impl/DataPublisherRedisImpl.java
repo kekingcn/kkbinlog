@@ -7,6 +7,8 @@ import cn.keking.project.binlogdistributor.pub.DataPublisher;
 import org.redisson.api.RQueue;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -22,6 +24,7 @@ import java.util.Set;
 public class DataPublisherRedisImpl implements DataPublisher {
     public static final String DATA = "BIN-LOG-DATA-";
     public static final String NOTIFIER = "BIN-LOG-NOTIFIER-";
+    private static final Logger log = LoggerFactory.getLogger(DataPublisherRedisImpl.class);
 
     RedissonClient redissonClient;
 
@@ -90,10 +93,10 @@ public class DataPublisherRedisImpl implements DataPublisher {
 
     private void doPublish(String clientId, String dataKey, EventBaseDTO data) {
         RQueue<EventBaseDTO> dataList = redissonClient.getQueue(dataKey);
-        dataList.offer(data);
+        boolean result = dataList.offer(data);
+        log.info("推送结果{}，推送信息,{}",result, data);
         String notifier = NOTIFIER.concat(clientId);
         RTopic<String> rTopic = redissonClient.getTopic(notifier);
         rTopic.publish(dataKey);
     }
-
 }

@@ -6,8 +6,7 @@ import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 /**
@@ -36,12 +35,14 @@ public class DataSubscriberRedisImpl implements DataSubscriber {
      */
     @Override
     public void subscribe(String clientId, BinLogDistributorClient binLogDistributorClient) {
-        Collection<String> keysByPattern = redissonClient.getKeys().findKeysByPattern(DATA+ clientId + "*");
+        Collection<String> keysByPattern = redissonClient.getKeys().findKeysByPattern(DATA + clientId + "*");
         //处理历史的
         keysByPattern.stream().filter(k -> !k.endsWith("-Lock"))
                 .forEach(k -> executors.submit(new DataHandler(k, clientId, binLogDistributorClient, redissonClient)));
+
         RTopic<String> topic = redissonClient.getTopic(NOTIFIER.concat(clientId));
         topic.addListener((channel, msg) -> {
+            //每次推送都会执行这个方法，每次开线程，使用线程里面redis锁判断开销太大，先在外面判断一次
             if (!DataHandler.DATA_KEY_IN_PROCESS.contains(msg)) {
                 //如果没在处理再进入
                 executors.submit(new DataHandler(msg, clientId, binLogDistributorClient, redissonClient));

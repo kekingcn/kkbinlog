@@ -8,6 +8,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RMap;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.codec.JsonJacksonMapCodec;
 
 import java.util.Set;
 import java.util.UUID;
@@ -46,7 +47,7 @@ public class DataHandler implements Runnable {
     /**
      * 正在处理的队列
      */
-    public static Set<String> DATA_KEY_IN_PROCESS = new ConcurrentHashMap<String, String>().keySet("");
+    public transient static Set<String> DATA_KEY_IN_PROCESS = new ConcurrentHashMap<String, String>().keySet("");
 
     public DataHandler(String dataKey, String clientId, BinLogDistributorClient binLogDistributorClient, RedissonClient redissonClient) {
         this.dataKey = dataKey;
@@ -59,38 +60,60 @@ public class DataHandler implements Runnable {
 
     @Override
     public void run() {
+        if (dataKey.contains(noneLock)) {
+            doRunWithoutLock();
+        } else {
+            doRunWithLock();
+        }
+    }
+
+    private void doRunWithoutLock() {
         try {
-            if (dataKey.contains(noneLock)) {
-                doRunWithoutLock();
-            } else {
-                RLock lock = redissonClient.getLock(dataKeyLock);
-                if (lock.tryLock(0, 3 * retryInterval, TimeUnit.MILLISECONDS)) {
-                    DATA_KEY_IN_PROCESS.add(dataKey);
-                    doRunWithLock(lock);
-                    lock.unlock();
-                    DATA_KEY_IN_PROCESS.remove(dataKey);
-                }
+            RQueue<EventBaseDTO> queue = redissonClient.getQueue(dataKey);
+            EventBaseDTO dto;
+            while ((dto = queue.poll()) != null) {
+                doHandleWithoutLock(dto, retryTimes);
             }
         } catch (Exception e) {
             e.printStackTrace();
             log.severe("接收处理数据失败：" + e.toString());
         }
+
     }
 
-    private void doRunWithoutLock() {
-        RQueue<EventBaseDTO> queue = redissonClient.getQueue(dataKey);
+    private void doRunWithLock() {
+        RLock rLock = redissonClient.getLock(dataKeyLock);
         EventBaseDTO dto;
-        while ((dto = queue.poll()) != null) {
-            doHandleWithoutLock(dto, retryTimes);
-        }
-    }
-
-    private void doRunWithLock(RLock lock) throws InterruptedException {
-        RQueue<EventBaseDTO> queue = redissonClient.getQueue(dataKey);
-        EventBaseDTO dto;
-        while (lock.tryLock(0, 3 * retryInterval, TimeUnit.MILLISECONDS) && (dto = queue.peek()) != null) {
-            if (doHandleWithLock(dto, 0) && lock.isHeldByCurrentThread()) {
-                queue.poll();
+        boolean lockRes = false;
+        try {
+            // 尝试加锁，最多等待50ms(防止过多线程等待)，上锁以后6个小时自动解锁(防止redis队列太长，当前拿到锁的线程处理时间过长)
+            lockRes = rLock.tryLock(50, 6 * 3600 * 1000, TimeUnit.MILLISECONDS);
+            if (!lockRes) {
+                return;
+            }
+            DATA_KEY_IN_PROCESS.add(dataKey);
+            //拿到锁之后再获取队列
+            RQueue<EventBaseDTO> queue = redissonClient.getQueue(dataKey);
+            if (!queue.isExists() || queue.isEmpty()) {
+                return;
+            }
+            //拿到锁且 队列不为空 进入
+            while ((dto = queue.peek()) != null) {
+                //处理完毕，把数据从队列摘除
+                boolean handleRes = doHandleWithLock(dto, 0);
+                if (handleRes) {
+                    queue.remove();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.severe("接收处理数据失败：" + e.toString());
+        } finally {
+            //forceUnlock是可以释放别的线程拿到的锁的，需要判断是否是当前线程持有的锁
+            if (lockRes) {
+                rLock.forceUnlock();
+                rLock.delete();
+                DATA_KEY_IN_PROCESS.remove(dataKey);
             }
         }
     }
@@ -108,8 +131,8 @@ public class DataHandler implements Runnable {
             log.severe(e.toString());
             e.printStackTrace();
             if (leftRetryTimes == 1) {
-                RMap<String, EventBaseErrDTO> errMap = redissonClient.getMap(errMapKey);
-                errMap.put(dto.getUuid(), new EventBaseErrDTO(dto, e,dataKey));
+                RMap<String, EventBaseErrDTO> errMap = redissonClient.getMap(errMapKey, new JsonJacksonMapCodec(String.class, EventBaseErrDTO.class));
+                errMap.put(dto.getUuid(), new EventBaseErrDTO(dto, e, dataKey));
             } else {
                 try {
                     Thread.sleep(retryInterval);
@@ -134,22 +157,25 @@ public class DataHandler implements Runnable {
             binLogDistributorClient.handle(dto);
             //如果之前有异常，恢复正常，那就处理
             if (retryTimes != 0) {
-                RMap<String, EventBaseErrDTO> errMap = redissonClient.getMap(errMapKey);
+                RMap<String, EventBaseErrDTO> errMap = redissonClient.getMap(errMapKey, new JsonJacksonMapCodec(String.class, EventBaseErrDTO.class));
                 errMap.remove(dto.getUuid());
             }
             return true;
         } catch (Exception e) {
+            if (retryTimes.intValue() >= 5) {
+                return true;
+            }
             log.severe(e.toString());
             e.printStackTrace();
-            RMap<String, EventBaseErrDTO> errMap = redissonClient.getMap(errMapKey);
-            errMap.put(dto.getUuid(), new EventBaseErrDTO(dto, e,dataKey));
+            log.log(Level.SEVERE, "第" + ++retryTimes + "次重试");
+            RMap<String, EventBaseErrDTO> errMap = redissonClient.getMap(errMapKey, new JsonJacksonMapCodec(String.class, EventBaseErrDTO.class));
+            errMap.put(dto.getUuid(), new EventBaseErrDTO(dto, e, dataKey));
             try {
                 Thread.sleep(retryInterval);
             } catch (InterruptedException e1) {
                 log.severe(e1.toString());
                 e1.printStackTrace();
             }
-            log.log(Level.SEVERE, "第{}次重试", ++retryTimes);
             return doHandleWithLock(dto, retryTimes);
         }
     }

@@ -63,12 +63,15 @@ public class BinLogEventHandlerFactory {
         switch (clientInfo.getDatabaseEvent()) {
             case WRITE_ROWS:
                 binLogWriteEventHandler.addClient(clientInfo);
+                log.info("添加客户端成功，参数如下：{}", clientInfo);
                 break;
             case DELETE_ROWS:
                 binLogDeleteEventHandler.addClient(clientInfo);
+                log.info("添加客户端成功，参数如下：{}", clientInfo);
                 break;
             case UPDATE_ROWS:
                 binLogUpdateEventHandler.addClient(clientInfo);
+                log.info("添加客户端成功，参数如下：{}", clientInfo);
                 break;
             default:
                 log.warn("添加客户端关注变动出现未知类型，参数如下：{}", clientInfo);
@@ -79,12 +82,15 @@ public class BinLogEventHandlerFactory {
         switch (clientInfo.getDatabaseEvent()) {
             case WRITE_ROWS:
                 binLogWriteEventHandler.deleteClient(clientInfo);
+                log.info("删除客户端成功，参数如下：{}", clientInfo);
                 break;
             case DELETE_ROWS:
                 binLogDeleteEventHandler.deleteClient(clientInfo);
+                log.info("删除客户端成功，参数如下：{}", clientInfo);
                 break;
             case UPDATE_ROWS:
                 binLogUpdateEventHandler.deleteClient(clientInfo);
+                log.info("删除客户端成功，参数如下：{}", clientInfo);
                 break;
             default:
                 log.warn("删除客户端关注变动出现未知类型，参数如下：{}", clientInfo);

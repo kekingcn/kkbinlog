@@ -105,5 +105,5 @@ public class DatabaseEventListener {
 >详见[bin-log-distributor-frontend](./bin-log-distributor-frontend/README.md)模块
  
 # 3 其他
-预计新增RabbitMQ通讯模块
+
 

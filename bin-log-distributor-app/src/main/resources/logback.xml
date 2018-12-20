@@ -11,9 +11,9 @@
         </rollingPolicy>
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <layout class="ch.qos.logback.classic.PatternLayout">
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} ${appName} [%thread] %-5level %logger{35} -%msg%n</pattern> 
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} ${appName} [%thread] %-5level %logger{35} -%msg%n</pattern>
             </layout>
-             
+
         </encoder>
 
     </appender>

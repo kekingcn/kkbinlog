@@ -24,22 +24,9 @@
         </dependency>
         <dependency>
             <groupId>cn.keking.project</groupId>
-            <artifactId>bin-log-distributor-pub</artifactId>
+            <artifactId>bin-log-distributor-param</artifactId>
             <version>${version}</version>
         </dependency>
     </dependencies>
-    <!-- distribute目录 -->
-    <distributionManagement>
-        <repository>
-            <id>repo</id>
-            <name>User Project Releases</name>
-            <url>http://192.168.1.204:8081/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>repo</id>
-            <name>User Project SNAPSHOTS</name>
-            <url>http://192.168.1.204:8081/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>

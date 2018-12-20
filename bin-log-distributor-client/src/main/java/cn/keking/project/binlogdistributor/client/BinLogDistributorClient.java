@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author zhenhui
  * @Ddate Created in 2018/18/01/2018/7:20 PM
- * @modified by
+ * @modified by chenjh
  */
 public class BinLogDistributorClient {
     private final static Logger log = Logger.getLogger(BinLogDistributorClient.class.toString());
@@ -25,6 +25,7 @@ public class BinLogDistributorClient {
 
     public final static Map<String, DatabaseEventHandler> HANDLER_MAP = new ConcurrentHashMap<>();
     private String serverUrl;
+    private String queueType = ClientInfo.QUEUE_TYPE_REDIS;
     private String clientId;
     private DataSubscriber dataSubscriber;
 
@@ -39,12 +40,28 @@ public class BinLogDistributorClient {
         this.dataSubscriber = dataSubscriber;
     }
 
+    public BinLogDistributorClient(String serverUrl, String queueType, String clientId, DataSubscriber dataSubscriber) {
+        this.serverUrl = serverUrl;
+        this.queueType = queueType;
+        this.clientId = clientId;
+        this.dataSubscriber = dataSubscriber;
+    }
+
     public String getServerUrl() {
         return serverUrl;
     }
 
     public BinLogDistributorClient setServerUrl(String serverUrl) {
         this.serverUrl = serverUrl;
+        return this;
+    }
+
+    public String getQueueType() {
+        return queueType;
+    }
+
+    public BinLogDistributorClient setQueueType(String queueType) {
+        this.queueType = queueType;
         return this;
     }
 
@@ -121,7 +138,7 @@ public class BinLogDistributorClient {
                 List<ClientInfo> clients = new ArrayList<>();
                 handlers.stream().map(h -> h.getAnnotation(HandleDatabaseEvent.class))
                         .forEach(a -> Arrays.stream(a.events())
-                                .map(e -> new ClientInfo(clientId, a.database(), a.table(), e, a.lockLevel(), a.columnName())).forEach(clients::add));
+                                .map(e -> new ClientInfo(clientId, queueType, a.database(), a.table(), e, a.lockLevel(), a.columnName())).forEach(clients::add));
                 // TODO: 19/01/2018 不想在这个项目中引入json解析的包,看下有没更好的解决方案
                 RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), Arrays.toString(clients.toArray()));
                 Request request = new Request.Builder()

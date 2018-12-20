@@ -95,12 +95,12 @@ public abstract class BinLogEventHandler {
      *
      * @param clientInfo
      */
-     public  void  deleteClient(ClientInfo clientInfo){
-         String key = clientInfo.getDatabaseName().concat("/").concat(clientInfo.getTableName());
-         Set<ClientInfo> clientInfos = clientInfoMap.get(key);
-         clientInfos.remove(clientInfo);
-         clientInfoMap.put(key, clientInfos);
-     }
+    public  void  deleteClient(ClientInfo clientInfo){
+        String key = clientInfo.getDatabaseName().concat("/").concat(clientInfo.getTableName());
+        Set<ClientInfo> clientInfos = clientInfoMap.get(key);
+        clientInfos.remove(clientInfo);
+        clientInfoMap.put(key, clientInfos);
+    }
 
     /**
      * 更新日志位置

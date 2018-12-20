@@ -12,10 +12,21 @@ import java.util.Objects;
  * @modified by
  */
 public class ClientInfo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    public static final String QUEUE_TYPE_REDIS = "redis";
+    public static final String QUEUE_TYPE_RABBIT = "rabbit";
+
     /**
      * 客户端编号
      */
     private String clientId;
+
+    /**
+     * 队列实现方式 默认为redis
+     */
+    private String queueType = QUEUE_TYPE_REDIS;
 
     /**
      * 关注的数据库名
@@ -50,8 +61,9 @@ public class ClientInfo implements Serializable {
     public ClientInfo() {
     }
 
-    public ClientInfo(String clientId, String databaseName, String tableName, DatabaseEvent databaseEvent, LockLevel lockLevel, String columnName) {
+    public ClientInfo(String clientId, String queueType, String databaseName, String tableName, DatabaseEvent databaseEvent, LockLevel lockLevel, String columnName) {
         this.clientId = clientId;
+        this.queueType = queueType;
         this.databaseName = databaseName;
         this.tableName = tableName;
         this.databaseEvent = databaseEvent;
@@ -94,6 +106,14 @@ public class ClientInfo implements Serializable {
         this.clientId = clientId;
     }
 
+    public String getQueueType() {
+        return queueType;
+    }
+
+    public void setQueueType(String queueType) {
+        this.queueType = queueType;
+    }
+
     public String getTableName() {
         return tableName;
     }
@@ -132,6 +152,7 @@ public class ClientInfo implements Serializable {
         if (!(o instanceof ClientInfo)) return false;
         ClientInfo that = (ClientInfo) o;
         return Objects.equals(clientId, that.clientId) &&
+                Objects.equals(queueType, that.queueType) &&
                 Objects.equals(databaseName, that.databaseName) &&
                 Objects.equals(tableName, that.tableName) &&
                 databaseEvent == that.databaseEvent &&
@@ -142,13 +163,14 @@ public class ClientInfo implements Serializable {
     @Override
     public int hashCode() {
 
-        return Objects.hash(clientId, databaseName, tableName, databaseEvent, lockLevel, columnName);
+        return Objects.hash(clientId, queueType, databaseName, tableName, databaseEvent, lockLevel, columnName);
     }
 
     @Override
     public String toString() {
         return "{" +
                 "\"clientId\":\"" + clientId + '\"' +
+                ", \"queueType\":\"" + queueType + '\"' +
                 ", \"databaseName\":\"" + databaseName + '\"' +
                 ", \"tableName\":\"" + tableName + '\"' +
                 ", \"databaseEvent\":\"" + databaseEvent + '\"' +

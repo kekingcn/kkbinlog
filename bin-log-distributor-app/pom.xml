@@ -54,13 +54,12 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.29</version>
         </dependency>
-        <!--redis分发器-->
+        <!--分发器-->
         <dependency>
             <groupId>cn.keking.project</groupId>
-            <artifactId>bin-log-distributor-pub-redis</artifactId>
+            <artifactId>bin-log-distributor-pub</artifactId>
             <version>${version}</version>
         </dependency>
-
         <!--mysql连接池-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -76,6 +75,17 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.5</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

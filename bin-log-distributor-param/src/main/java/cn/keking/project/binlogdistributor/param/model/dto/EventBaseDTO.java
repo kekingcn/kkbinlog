@@ -12,6 +12,9 @@ import java.util.UUID;
  * @modified by
  */
 public class EventBaseDTO implements Serializable {
+
+    private static final long serialVersionUID = -188511150756468947L;
+
     /**
      * 确保传输的数据唯一
      */
@@ -19,17 +22,20 @@ public class EventBaseDTO implements Serializable {
     private DatabaseEvent eventType;
     private String database;
     private String table;
+    private String namespace;
 
     public EventBaseDTO() {
     }
 
-    public EventBaseDTO(DatabaseEvent eventType, String database, String table) {
+    public EventBaseDTO(String namespace, DatabaseEvent eventType, String database, String table) {
+        this.namespace = namespace;
         this.eventType = eventType;
         this.database = database;
         this.table = table;
     }
 
     public EventBaseDTO(EventBaseDTO eventBaseDTO) {
+        this.namespace = eventBaseDTO.namespace;
         this.eventType = eventBaseDTO.getEventType();
         this.database = eventBaseDTO.getDatabase();
         this.table = eventBaseDTO.getTable();
@@ -67,6 +73,14 @@ public class EventBaseDTO implements Serializable {
         this.uuid = uuid;
     }
 
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -85,6 +99,7 @@ public class EventBaseDTO implements Serializable {
         return "EventBaseDTO{" +
                 "uuid='" + uuid + '\'' +
                 ", eventType=" + eventType +
+                ", namespace='" + namespace + '\'' +
                 ", database='" + database + '\'' +
                 ", table='" + table + '\'' +
                 '}';

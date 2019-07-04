@@ -15,6 +15,9 @@ import java.lang.annotation.*;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HandleDatabaseEvent {
+
+    String namespace() default "default";
+
     String database();
 
     String table();

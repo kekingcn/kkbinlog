@@ -1,6 +1,7 @@
 package cn.keking.project.binlogdistributor.app.service.impl;
 
 import cn.keking.project.binlogdistributor.app.model.ColumnsTableMapEventData;
+import cn.keking.project.binlogdistributor.app.service.BinLogEventContext;
 import cn.keking.project.binlogdistributor.app.service.BinLogEventHandler;
 import cn.keking.project.binlogdistributor.param.enums.DatabaseEvent;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
@@ -13,8 +14,8 @@ import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -24,9 +25,12 @@ import java.util.stream.IntStream;
  * @date Created in 2018/17/01/2018/4:48 PM
  * @modified by
  */
-@Service
 public class BinLogUpdateEventHandler extends BinLogEventHandler {
     private static final Logger log = LoggerFactory.getLogger(BinLogUpdateEventHandler.class);
+
+    public BinLogUpdateEventHandler(BinLogEventContext context) {
+        super(context);
+    }
 
     @Override
     protected EventBaseDTO formatData(Event event) {
@@ -34,9 +38,10 @@ public class BinLogUpdateEventHandler extends BinLogEventHandler {
         UpdateRowsDTO updateRowsDTO = new UpdateRowsDTO();
         updateRowsDTO.setEventType(DatabaseEvent.UPDATE_ROWS);
         //添加表信息
-        ColumnsTableMapEventData tableMapData = TABLE_MAP_ID.get(d.getTableId());
+        ColumnsTableMapEventData tableMapData = context.getTableMapData(d.getTableId());
         updateRowsDTO.setDatabase(tableMapData.getDatabase());
         updateRowsDTO.setTable(tableMapData.getTable());
+        updateRowsDTO.setNamespace(context.getBinaryLogConfig().getNamespace());
         //添加列映射
         int[] includedColumns = d.getIncludedColumns().stream().toArray();
         List<UpdateRow> urs = d.getRows().stream()
@@ -46,29 +51,11 @@ public class BinLogUpdateEventHandler extends BinLogEventHandler {
         return updateRowsDTO;
     }
 
-    /**
-     * 转化格式
-     * @param data
-     * @param includedColumns
-     * @param tableMapData
-     * @return
-     */
-    private Map<String,Serializable> convert(Serializable[] data,int[] includedColumns,ColumnsTableMapEventData tableMapData){
-
-        Map<String, Serializable> result = new HashMap<>();
-        IntStream.range(0, includedColumns.length)
-                .forEach(i -> result.put(tableMapData.getColumnNames().get(includedColumns[i]),
-                        data[i]));
-        return result;
-
-    }
-
-
     @Override
     protected Set<ClientInfo> filter(Event event) {
         UpdateRowsEventData d = event.getData();
         long tableId = d.getTableId();
-        TableMapEventData tableMapEventData = TABLE_MAP_ID.get(tableId);
+        TableMapEventData tableMapEventData =  context.getTableMapData(tableId);
         String tableKey = tableMapEventData.getDatabase().concat("/").concat(tableMapEventData.getTable());
         return clientInfoMap.get(tableKey);
     }

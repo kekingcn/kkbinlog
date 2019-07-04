@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author zhenhui
  * @Ddate Created in 2018/18/01/2018/4:27 PM
- * @modified by chenjh
+ * @modified by
  */
 public class DataPublisherRedisImpl {
 
@@ -27,6 +27,7 @@ public class DataPublisherRedisImpl {
     public void doPublish(String clientId, String dataKey, EventBaseDTO data) {
         RQueue<EventBaseDTO> dataList = redissonClient.getQueue(dataKey);
         boolean result = dataList.offer(data);
+        log.info("推送结果{}，推送信息,{}",result, data);
         String notifier = NOTIFIER.concat(clientId);
         RTopic<String> rTopic = redissonClient.getTopic(notifier);
         rTopic.publish(dataKey);

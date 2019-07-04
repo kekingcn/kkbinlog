@@ -23,6 +23,6 @@ public enum LockLevel {
     /**
      * 无序
      */
-    NONE;
+    NONE
 
 }

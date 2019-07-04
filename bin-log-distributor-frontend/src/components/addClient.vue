@@ -1,22 +1,37 @@
 <template>
-  <el-form :model="client" :rules="rules" ref="ruleForm"  style="margin-top: 20px">
+  <el-form :model="client" :rules="rules" ref="ruleForm" label-width="80px" style="width: 600px; margin: 40px auto;">
     <el-form-item prop="clientId" label="应用ID">
       <el-input v-model="client.clientId" class="auto"></el-input>
+    </el-form-item>
+    <el-form-item prop="namespace" label="命名空间">
+      <el-select v-model="client.namespace" style="width: 100%" placeholder="请选择">
+        <el-option
+          v-for="item in namespaceList"
+          :key="item"
+          :label="item"
+          :value="item">
+        </el-option>
+      </el-select>
     </el-form-item>
     <el-form-item prop="databaseName" label="数据库">
       <el-input v-model="client.databaseName" class="auto"></el-input>
     </el-form-item>
     <el-form-item prop="tableName" label="表名">
-      <el-input v-model="client.tableName" class="auto" style="margin-left: -985px"></el-input>
+      <el-input v-model="client.tableName" class="auto" ></el-input>
     </el-form-item>
-    <el-form-item prop="databaseEvent" label="表操作">
-      <el-select v-model="client.databaseEvent" class="auto" style="margin-left: -1000px;width: 210px">
-        <el-option  v-for="item in events"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
-        </el-option>
-      </el-select>
+    <el-form-item label="表操作" prop="databaseEvent">
+      <el-checkbox-group v-model="client.databaseEvent" @change="checkBoxChange">
+        <el-checkbox label="WRITE_ROWS">增加操作</el-checkbox>
+        <el-checkbox label="UPDATE_ROWS">更新操作</el-checkbox>
+        <el-checkbox label="DELETE_ROWS">删除操作</el-checkbox>
+      </el-checkbox-group>
+    </el-form-item>
+    <el-form-item label="队列类型" prop="queueType">
+      <el-radio-group v-model="client.queueType">
+        <el-radio :label="'redis'">redis</el-radio>
+        <el-radio :label="'rabbit'">rabbit</el-radio>
+        <el-radio :label="'kafka'">kafka</el-radio>
+      </el-radio-group>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="addclient('ruleForm')" class="auto">提交</el-button>
@@ -24,36 +39,27 @@
   </el-form>
 </template>
 <script>
-  import {addClient} from '../api/api'
+  import {addClient, getNamespaceList} from '../api/api'
   export default {
     data() {
       return {
         client: {
           clientId: '',
+          namespace: '',
           databaseName: '',
           tableName: '',
-          databaseEvent: ''
+          databaseEvent: ['WRITE_ROWS', 'UPDATE_ROWS', 'DELETE_ROWS'],
+          queueType: 'kafka'
         },
-        events:[
-          {
-            value: 'WRITE_ROWS',
-            label: '增加操作'
-          },
-          {
-            value: 'UPDATE_ROWS',
-            label: '更新操作'
-          },
-          {
-            value: 'DELETE_ROWS',
-            label: '删除操作'
-          },
-        ],
         rules: {
           clientId: [{required: true, message: '请输入应用id', trigger: 'blur'}],
+          namespace: [{required: true, message: '请选择命名空间', trigger: 'blur'}],
           databaseName: [{required: true, message: '请输入数据库名', trigger: 'blur'}],
           tableName: [{required: true, message: '请输入表名', trigger: 'blur'}],
-          databaseEvent: [{required: true, message: '请输入时间', trigger: 'blur'}]
-        }
+          databaseEvent: [{required: true, message: '请勾选事件类型', trigger: 'blur'}],
+          queueType: [{required: true, message: '请选择队列类型', trigger: 'blur'}]
+        },
+        namespaceList: []
       }
     },
     methods: {
@@ -73,16 +79,21 @@
             })
           }
         })
+      },
+      checkBoxChange(list) {
+        this.client.databaseEvent = list;
       }
     },
     mounted() {
-
+      getNamespaceList().then(res => {
+        this.namespaceList = res.data
+      })
     }
   }
 </script>
 <style>
-  .auto {
+  /* .auto {
     width: auto;
     margin-left: -1000px;
-  }
+  } */
 </style>

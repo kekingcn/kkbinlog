@@ -1,8 +1,10 @@
 <template>
 <div>
-  <p>当前日志文件:{{fileName}}</p>
-  <p>当前日志位置:{{position}}</p>
-
+  <el-table :data="logStatus">
+    <el-table-column prop="namespace" label="命名空间" align="center"></el-table-column>
+    <el-table-column prop="binlogFilename" label="当前日志文件" align="center"></el-table-column>
+    <el-table-column prop="binlogPosition" label="当前日志位置" align="center"></el-table-column>
+  </el-table>
 </div>
 </template>
 
@@ -12,8 +14,7 @@
   export default {
     data(){
       return{
-        fileName : '',
-        position : '',
+        logStatus: []
       }
     },
     methods:{
@@ -21,10 +22,8 @@
     },
     mounted(){
       getLogStatus('').then(res=>{
-        this.fileName=res.data.binlogFilename
-        this.position=res.data.binlogPosition
+        this.logStatus = res.data
       })
-
     }
   }
 

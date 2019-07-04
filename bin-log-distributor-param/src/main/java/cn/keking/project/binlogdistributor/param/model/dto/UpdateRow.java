@@ -9,6 +9,9 @@ import java.util.Map;
  * @modified by
  */
 public class UpdateRow implements Serializable {
+
+    private static final long serialVersionUID = -2966621316372838979L;
+
     private Map<String, Serializable> beforeRowMap;
     private Map<String, Serializable> afterRowMap;
 

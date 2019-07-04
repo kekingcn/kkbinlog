@@ -12,6 +12,9 @@ import java.util.Map;
  * @modified by
  */
 public class WriteRowsDTO extends EventBaseDTO {
+
+    private static final long serialVersionUID = 6443935897277661139L;
+
     private List<Map<String, Serializable>> rowMaps;
 
     public WriteRowsDTO() {

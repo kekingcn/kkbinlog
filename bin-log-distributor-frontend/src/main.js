@@ -14,6 +14,6 @@ new Vue({
   el: '#app',
   router,
   HttpInterceptors,
-  components: { App },
+  components: {App},
   template: '<App/>'
-})
+});

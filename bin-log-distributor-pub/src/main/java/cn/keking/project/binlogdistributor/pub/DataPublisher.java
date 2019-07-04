@@ -3,11 +3,11 @@ package cn.keking.project.binlogdistributor.pub;
 import cn.keking.project.binlogdistributor.param.enums.LockLevel;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
 import cn.keking.project.binlogdistributor.param.model.dto.*;
-import cn.keking.project.binlogdistributor.pub.impl.DataPublisherRabbitMQImpl;
-import cn.keking.project.binlogdistributor.pub.impl.DataPublisherRedisImpl;
+import cn.keking.project.binlogdistributor.pub.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -18,8 +18,9 @@ import java.util.Set;
 /**
  * @author zhenhui
  * @Ddate Created in 2018/18/01/2018/4:26 PM
- * @modified by chenjh
+ * @modified by
  */
+@Component
 public class DataPublisher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisher.class);
@@ -30,7 +31,10 @@ public class DataPublisher {
     private DataPublisherRedisImpl redisPublisher;
 
     @Autowired
-    private DataPublisherRabbitMQImpl rabbitPublisher;
+    private DataPublisherRabbitMQ rabbitPublisher;
+
+    @Autowired
+    private DataPublisherKafka kafkaPublisher;
 
     public void publish(Set<ClientInfo> clientInfos, EventBaseDTO data) {
         clientInfos.forEach(clientInfo -> {
@@ -74,10 +78,12 @@ public class DataPublisher {
                             doPublish(clientInfo, DATA.concat(clientInfo.getKey()).concat(cn.toString()), new DeleteRowsDTO(data, Arrays.asList(r)));
                         });
                         break;
+                        default:
+                            LOGGER.info("不支持的事件类型");
                 }
             } else {
                 //其他级别直接发布
-                doPublish(clientInfo, DATA.concat(clientInfo.getKey()), data);
+                doPublish(clientInfo, topicName(clientInfo), data);
             }
         });
     }
@@ -87,9 +93,19 @@ public class DataPublisher {
             redisPublisher.doPublish(clientInfo.getClientId(), dataKey, data);
         } else if (ClientInfo.QUEUE_TYPE_RABBIT.equals(clientInfo.getQueueType())) {
             rabbitPublisher.doPublish(clientInfo.getClientId(), dataKey, data);
-        } else {
+        } else if(ClientInfo.QUEUE_TYPE_KAFKA.equals(clientInfo.getQueueType())){
+            kafkaPublisher.doPublish(clientInfo.getClientId(), dataKey, data);
+        }else {
             LOGGER.warn("未成功分发数据，没有相应的分发队列实现：{}", data);
         }
+    }
 
+    /**
+     * 默认表级锁定topicName
+     * @param clientInfo
+     * @return
+     */
+    public static String topicName(ClientInfo clientInfo){
+        return DATA.concat(clientInfo.getKey());
     }
 }

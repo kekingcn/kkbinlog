@@ -1,9 +1,17 @@
 <template>
       <el-container>
-        <el-header>
+        <el-header style="display: flex; justify-content: space-between;">
           <div>
             <h2 class="header">binLog</h2>
           </div>
+        <!-- </el-header>
+        <el-header> -->
+          <el-dropdown trigger="hover">
+            <span class="el-dropdown-link">当前用户:{{sysUserName}}</span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </el-header>
         <el-container>
           <el-aside width="200px">
@@ -17,6 +25,7 @@
               </el-submenu>
               <el-menu-item index="queueMonitoring" route="" >队列监控</el-menu-item>
               <el-menu-item index="logProgress" route="" >日志进度</el-menu-item>
+              <el-menu-item index="datasourceList" route="" >数据源管理</el-menu-item>
             </el-menu>
           </el-aside>
           <el-main>
@@ -39,10 +48,42 @@
       </el-container>
 </template>
 <script>
-
-
+  export default {
+    data(){
+      return{
+        sysUserName: '',
+      }
+    },
+    methods:{
+      logout: function () {
+        var _this = this;
+        this.$confirm('确认退出吗?', '提示', {
+          //type: 'warning'
+        }).then(() => {
+          sessionStorage.removeItem('user');
+          _this.$router.push('/login');
+        }).catch(() => {
+        });
+      },
+    },
+    mounted(){
+      var user = sessionStorage.getItem('user');
+      if (user) {
+        user = JSON.parse(user);
+        this.sysUserName = user.username || '';
+      }
+    }
+  }
+ 
 </script>
 <style>
+  .rightTitle{
+    text-align: left;
+    margin-top: 5px;
+    margin-left: 1400px;
+    font-family:"Nirmala UI";
+    font-size: 15px;
+  }
   .header{
     text-align: left;margin-top: 5px;
     font-family: Garamond;

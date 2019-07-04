@@ -6,12 +6,11 @@
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --progress --config build/webpack.dev.conf.js",
-    "dev204": "node build/dev-build.js",
     "start": "npm run dev",
     "build": "node build/build.js"
   },
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.17.1",
     "element-ui": "^2.0.11",
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.6",
@@ -52,8 +51,8 @@
     "vue-style-loader": "^3.1.2",
     "vue-template-compiler": "^2.5.16",
     "webpack": "^3.11.0",
-    "webpack-bundle-analyzer": ">=3.3.2",
-    "webpack-dev-server": "^3.1.11",
+    "webpack-bundle-analyzer": "^2.11.1",
+    "webpack-dev-server": "^2.11.2",
     "webpack-merge": "^4.1.2"
   },
   "engines": {

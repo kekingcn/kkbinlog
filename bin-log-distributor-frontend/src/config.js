@@ -1,6 +1,5 @@
-
-let env = process.env.NODE_ENV
-
-export const  backendUrl=env==='development'?'http://localhost:8886/'
-  :env==='uat'?'http://192.168.204:8886'
-  :env==='production'?'':''
+/**
+ * 数据分发后端地址，binlog
+ * @type {string}
+ */
+export const backendUrl = 'http://localhost:8885/';

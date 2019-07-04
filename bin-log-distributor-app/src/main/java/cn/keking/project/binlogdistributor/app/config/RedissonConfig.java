@@ -5,18 +5,23 @@ import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.Codec;
 import org.redisson.config.Config;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
 
 /**
- * Created by kl on 2017/09/26.
  * redisson 客户端配置
+ * @author T-lih
  */
 @ConfigurationProperties(prefix = "spring.redisson")
 @Configuration
 public class RedissonConfig {
+
+    @Autowired
+    private Environment environment;
 
     private String address;
     private int connectionMinimumIdleSize = 5;

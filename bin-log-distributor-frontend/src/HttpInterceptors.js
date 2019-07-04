@@ -3,18 +3,6 @@ import Vue from 'vue'
 
 // 超时时间
 axios.defaults.timeout = 60000;
-axios.interceptors.request.use(
-    config => {
-       // config.headers['Content-Type'] = 'application/json;charset=UTF-8';
-     //   config.headers['Access-Control-Allow-Origin']='*'
-
-        return config
-    },
-    error => {
-        new Vue().$message({message: '加载超时',type: 'error'});
-        return Promise.reject(error)
-    }
-);
 axios.interceptors.response.use(
     data => {
         return data
@@ -39,7 +27,7 @@ axios.interceptors.response.use(
                     break;
             }
         } else {
-            new Vue().$message({message: '请求超时，请检查网络',type: 'warning'});
+       //     new Vue().$message({message: '请求超时，请检查网络',type: 'warning'});
         }
         return Promise.reject(error)
     }

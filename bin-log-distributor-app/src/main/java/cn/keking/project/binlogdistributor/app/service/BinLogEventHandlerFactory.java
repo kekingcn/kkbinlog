@@ -1,15 +1,11 @@
 package cn.keking.project.binlogdistributor.app.service;
 
-import cn.keking.project.binlogdistributor.app.config.BinaryLogConfig;
 import cn.keking.project.binlogdistributor.app.service.impl.*;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
 import com.github.shyiko.mysql.binlog.event.EventHeader;
 import com.github.shyiko.mysql.binlog.event.EventType;
-import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * 根据类型提供事件的handler
@@ -18,26 +14,30 @@ import org.springframework.stereotype.Service;
  * @date Created in 2018/17/01/2018/5:15 PM
  * @modified by
  */
-@Service
 public class BinLogEventHandlerFactory {
     private static final Logger log = LoggerFactory.getLogger(BinLogDefaultEventHandler.class);
 
-    @Autowired
-    BinLogUpdateEventHandler binLogUpdateEventHandler;
-    @Autowired
+    BinLogUpdateEventHandler  binLogUpdateEventHandler;
+
     BinLogWriteEventHandler binLogWriteEventHandler;
-    @Autowired
+
     BinLogDeleteEventHandler binLogDeleteEventHandler;
-    @Autowired
+
     BinLogDefaultEventHandler binLogDefaultEventHandler;
-    @Autowired
+
     BinLogTableMapEventHandler binLogTableMapEventHandler;
-    @Autowired
+
     BinLogRotateEventHandler binLogRotateEventHandler;
-    @Autowired
-    RedissonClient redissonClient;
-    @Autowired
-    BinaryLogConfig binaryLogConfig;
+
+    public BinLogEventHandlerFactory(BinLogEventContext context) {
+
+        this.binLogUpdateEventHandler = new BinLogUpdateEventHandler(context);
+        this.binLogWriteEventHandler = new BinLogWriteEventHandler(context);
+        this.binLogDeleteEventHandler = new BinLogDeleteEventHandler(context);
+        this.binLogDefaultEventHandler = new BinLogDefaultEventHandler(context);
+        this.binLogTableMapEventHandler = new BinLogTableMapEventHandler(context);
+        this.binLogRotateEventHandler = new BinLogRotateEventHandler(context);
+    }
 
     public BinLogEventHandler getHandler(EventHeader header) {
         //考虑到状态映射的问题，只在增删改是更新位置

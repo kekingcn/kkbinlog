@@ -14,46 +14,12 @@ module.exports = {
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST
-    port: 8080, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
+    port: 9009, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
     autoOpenBrowser: false,
     errorOverlay: true,
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
 
-
-    /**
-     * Source Maps
-     */
-
-    // https://webpack.js.org/configuration/devtool/#development
-    devtool: 'cheap-module-eval-source-map',
-
-    // If you have problems debugging vue-files in devtools,
-    // set this to false - it *may* help
-    // https://vue-loader.vuejs.org/en/options.html#cachebusting
-    cacheBusting: true,
-
-    cssSourceMap: true
-  },
-  dev204: {
-    env: require('./dev204.env'),
-    index: path.resolve(__dirname, '../binlog/index.html'),
-    assetsRoot: path.resolve(__dirname, '../binlog'),
-    assetsSubDirectory: 'static',
-    assetsPublicPath: '/ng/binlog/',
-    productionSourceMap: true,
-    productionGzip: false,
-    productionGzipExtensions: ['js', 'css'],
-    bundleAnalyzerReport: process.env.npm_config_report,
-// Various Dev Server settings
-    //host: 'localhost', // can be overwritten by process.env.HOST
-    //port: 9000, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
-    // port:process.env.PORT,
-    // host:process.env.host,
-    autoOpenBrowser: false,
-    errorOverlay: true,
-    notifyOnErrors: true,
-    poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
 
     /**
      * Source Maps
@@ -71,12 +37,12 @@ module.exports = {
   },
   build: {
     // Template for index.html
-    index: path.resolve(__dirname, '../dist/index.html'),
+    index: path.resolve(__dirname, '../binlog/index.html'),
 
     // Paths
-    assetsRoot: path.resolve(__dirname, '../dist'),
+    assetsRoot: path.resolve(__dirname, '../binlog'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/',
+    assetsPublicPath: '/binlog',
 
     /**
      * Source Maps

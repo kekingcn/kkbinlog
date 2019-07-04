@@ -17,6 +17,7 @@ public class ClientInfo implements Serializable {
 
     public static final String QUEUE_TYPE_REDIS = "redis";
     public static final String QUEUE_TYPE_RABBIT = "rabbit";
+    public static final String QUEUE_TYPE_KAFKA = "kafka";
 
     /**
      * 客户端编号
@@ -27,6 +28,11 @@ public class ClientInfo implements Serializable {
      * 队列实现方式 默认为redis
      */
     private String queueType = QUEUE_TYPE_REDIS;
+
+    /**
+     * 关注的数据库的标识
+     */
+    private String namespace = "default";
 
     /**
      * 关注的数据库名
@@ -61,24 +67,28 @@ public class ClientInfo implements Serializable {
     public ClientInfo() {
     }
 
-    public ClientInfo(String clientId, String queueType, String databaseName, String tableName, DatabaseEvent databaseEvent, LockLevel lockLevel, String columnName) {
+    public ClientInfo(String clientId, String queueType, String namespace, String databaseName, String tableName, DatabaseEvent databaseEvent, LockLevel lockLevel, String columnName) {
         this.clientId = clientId;
         this.queueType = queueType;
+        this.namespace = namespace == null ? "default" : namespace;
         this.databaseName = databaseName;
         this.tableName = tableName;
         this.databaseEvent = databaseEvent;
         this.lockLevel = lockLevel;
         this.columnName = columnName;
+
+        String multiDataSourceSupport = "default".equals(this.namespace) ? "" : ("-" + namespace);
+
         switch (lockLevel) {
             case TABLE:
-                key = clientId + "-" + lockLevel + "-" + databaseName + "-" + tableName;
+                key = clientId + multiDataSourceSupport + "-" + lockLevel + "-" + databaseName + "-" + tableName;
                 break;
             case COLUMN:
-                key = clientId + "-" + lockLevel + "-" + databaseName + "-" + tableName + "-";
+                key = clientId + multiDataSourceSupport + "-" + lockLevel + "-" + databaseName + "-" + tableName + "-";
                 break;
             case NONE:
             default:
-                key = clientId + "-" + lockLevel + "-" + databaseName;
+                key = clientId + multiDataSourceSupport + "-" + lockLevel + "-" + databaseName;
         }
     }
 
@@ -146,24 +156,34 @@ public class ClientInfo implements Serializable {
         this.key = key;
     }
 
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ClientInfo)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         ClientInfo that = (ClientInfo) o;
         return Objects.equals(clientId, that.clientId) &&
                 Objects.equals(queueType, that.queueType) &&
+                Objects.equals(namespace, that.namespace) &&
                 Objects.equals(databaseName, that.databaseName) &&
                 Objects.equals(tableName, that.tableName) &&
                 databaseEvent == that.databaseEvent &&
                 lockLevel == that.lockLevel &&
-                Objects.equals(columnName, that.columnName);
+                Objects.equals(columnName, that.columnName) &&
+                Objects.equals(key, that.key);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(clientId, queueType, databaseName, tableName, databaseEvent, lockLevel, columnName);
+        return Objects.hash(clientId, queueType, databaseName, tableName, databaseEvent, lockLevel, columnName, namespace);
     }
 
     @Override
@@ -171,6 +191,7 @@ public class ClientInfo implements Serializable {
         return "{" +
                 "\"clientId\":\"" + clientId + '\"' +
                 ", \"queueType\":\"" + queueType + '\"' +
+                ", \"namespace\":\"" + namespace + '\"' +
                 ", \"databaseName\":\"" + databaseName + '\"' +
                 ", \"tableName\":\"" + tableName + '\"' +
                 ", \"databaseEvent\":\"" + databaseEvent + '\"' +

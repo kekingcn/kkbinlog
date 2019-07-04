@@ -1,6 +1,7 @@
 package cn.keking.project.binlogdistributor.app.service.impl;
 
 import cn.keking.project.binlogdistributor.app.model.ColumnsTableMapEventData;
+import cn.keking.project.binlogdistributor.app.service.BinLogEventContext;
 import cn.keking.project.binlogdistributor.app.service.BinLogEventHandler;
 import cn.keking.project.binlogdistributor.param.enums.DatabaseEvent;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
@@ -23,9 +24,12 @@ import java.util.stream.IntStream;
  * @date Created in 2018/17/01/2018/4:48 PM
  * @modified by
  */
-@Service
 public class BinLogDeleteEventHandler extends BinLogEventHandler {
     private static final Logger log = LoggerFactory.getLogger(BinLogDeleteEventHandler.class);
+
+    public BinLogDeleteEventHandler(BinLogEventContext context) {
+        super(context);
+    }
 
     @Override
     protected EventBaseDTO formatData(Event event) {
@@ -33,9 +37,10 @@ public class BinLogDeleteEventHandler extends BinLogEventHandler {
         DeleteRowsDTO deleteRowsDTO = new DeleteRowsDTO();
         deleteRowsDTO.setEventType(DatabaseEvent.DELETE_ROWS);
         //添加表信息
-        ColumnsTableMapEventData tableMapData = TABLE_MAP_ID.get(d.getTableId());
+        ColumnsTableMapEventData tableMapData = context.getTableMapData(d.getTableId());
         deleteRowsDTO.setDatabase(tableMapData.getDatabase());
         deleteRowsDTO.setTable(tableMapData.getTable());
+        deleteRowsDTO.setNamespace(context.getBinaryLogConfig().getNamespace());
         //添加列映射
         int[] includedColumns = d.getIncludedColumns().stream().toArray();
         deleteRowsDTO.setRowMaps(d.getRows().stream()
@@ -43,28 +48,11 @@ public class BinLogDeleteEventHandler extends BinLogEventHandler {
         return deleteRowsDTO;
     }
 
-    /**
-     * 转化格式
-     * @param data
-     * @param includedColumns
-     * @param tableMapData
-     * @return
-     */
-    private Map<String,Serializable> convert(Serializable[] data, int[] includedColumns, ColumnsTableMapEventData tableMapData){
-
-        Map<String, Serializable> result = new HashMap<>();
-        IntStream.range(0, includedColumns.length)
-                .forEach(i -> result.put(tableMapData.getColumnNames().get(includedColumns[i]),
-                        data[i]));
-        return result;
-
-    }
-
     @Override
     protected Set<ClientInfo> filter(Event event) {
         DeleteRowsEventData d = event.getData();
         long tableId = d.getTableId();
-        TableMapEventData tableMapEventData = TABLE_MAP_ID.get(tableId);
+        TableMapEventData tableMapEventData = context.getTableMapData(tableId);
         String tableKey = tableMapEventData.getDatabase().concat("/").concat(tableMapEventData.getTable());
         return clientInfoMap.get(tableKey);
     }

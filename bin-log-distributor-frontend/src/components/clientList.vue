@@ -1,9 +1,11 @@
 <template>
 <el-table :data="clients">
   <el-table-column prop="clientId" label="应用" align="center"></el-table-column>
-  <el-table-column prop="databaseName" label="数据库"align="center"></el-table-column>
-  <el-table-column prop="tableName" label="表"align="center"></el-table-column>
+  <el-table-column prop="namespace" label="命名空间" align="center"></el-table-column>
+  <el-table-column prop="databaseName" label="数据库" align="center"></el-table-column>
+  <el-table-column prop="tableName" label="表" align="center"></el-table-column>
   <el-table-column prop="databaseEvent" label="动作" align="center"></el-table-column>
+  <el-table-column prop="queueType" label="队列类型" align="center"></el-table-column>
   <el-table-column label="操作" align="center">
     <template slot-scope="scope">
       <el-button @click="deleteClient(scope.row)">删除</el-button>

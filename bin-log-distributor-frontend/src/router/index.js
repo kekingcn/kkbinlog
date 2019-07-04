@@ -1,15 +1,23 @@
 import Vue from 'vue'
+import  login from '../components/login.vue'
 import Router from 'vue-router'
 import home from  '@/components/home'
 import addClient from '../components/addClient.vue'
 import queueMonitoring from '../components/queueMonitoring.vue'
 import clientList from '../components/clientList.vue'
+import datasourceList from '../components/datasourceList.vue'
 import logProgress from '../components/logProgress.vue'
 
 Vue.use(Router)
 
 export default new Router({
   routes: [
+    {
+      path:'/login',
+      component:login,
+      name: "",
+      hidden: true
+    },
     {
       path: '/',
       name: '主页',
@@ -34,6 +42,11 @@ export default new Router({
           path:'/clientList',
           name:'应用列表',
           component:clientList
+        },
+        {
+          path:'/datasourceList',
+          name:'数据源列表',
+          component:datasourceList
         },
       ]
     }

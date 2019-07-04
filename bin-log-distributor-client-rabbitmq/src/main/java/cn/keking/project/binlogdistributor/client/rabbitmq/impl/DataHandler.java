@@ -1,6 +1,7 @@
 package cn.keking.project.binlogdistributor.client.rabbitmq.impl;
 
 import cn.keking.project.binlogdistributor.client.BinLogDistributorClient;
+import cn.keking.project.binlogdistributor.param.enums.Constants;
 import cn.keking.project.binlogdistributor.param.enums.LockLevel;
 import cn.keking.project.binlogdistributor.param.model.dto.EventBaseDTO;
 import cn.keking.project.binlogdistributor.param.model.dto.EventBaseErrDTO;
@@ -63,7 +64,7 @@ public class DataHandler implements Runnable {
         this.binLogDistributorClient = binLogDistributorClient;
         this.redissonClient = redissonClient;
         this.connectionFactory = connectionFactory;
-        this.errMapKey = "BIN-LOG-ERR-MAP-".concat(clientId);
+        this.errMapKey = Constants.REDIS_PREFIX.concat("BIN-LOG-ERR-MAP-").concat(clientId);
         this.dataKeyLock = dataKey.concat("-Lock");
     }
 
@@ -128,7 +129,6 @@ public class DataHandler implements Runnable {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
             log.severe("接收处理数据失败：" + e.toString());
         } finally {
             //forceUnlock是可以释放别的线程拿到的锁的，需要判断是否是当前线程持有的锁
@@ -160,7 +160,6 @@ public class DataHandler implements Runnable {
                     Thread.sleep(retryInterval);
                 } catch (InterruptedException e1) {
                     log.severe(e1.toString());
-                    e1.printStackTrace();
                 }
                 log.log(Level.SEVERE, "还剩{}次重试", --leftRetryTimes);
                 doHandleWithoutLock(dto, leftRetryTimes);
@@ -185,18 +184,16 @@ public class DataHandler implements Runnable {
             return true;
         } catch (Exception e) {
             if (retryTimes.intValue() >= 5) {
+                log.log(Level.SEVERE, "全部重试失败，请及时处理！", e);
                 return true;
             }
-            log.severe(e.toString());
-            e.printStackTrace();
-            log.log(Level.SEVERE, "第" + ++retryTimes + "次重试");
+            log.log(Level.INFO, "第" + ++retryTimes + "次重试");
             RMap<String, EventBaseErrDTO> errMap = redissonClient.getMap(errMapKey, new JsonJacksonMapCodec(String.class, EventBaseErrDTO.class));
             errMap.put(dto.getUuid(), new EventBaseErrDTO(dto, e, dataKey));
             try {
                 Thread.sleep(retryInterval);
             } catch (InterruptedException e1) {
                 log.severe(e1.toString());
-                e1.printStackTrace();
             }
             return doHandleWithLock(dto, retryTimes);
         }

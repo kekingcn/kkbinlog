@@ -1,5 +1,6 @@
 package cn.keking.project.binlogdistributor.app.config;
 
+import cn.keking.project.binlogdistributor.app.util.RabbitMQHttpClient;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.DirectExchange;
@@ -8,9 +9,15 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 
 /**
  * @auther: chenjh
@@ -18,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
  * @description
  */
 @ConfigurationProperties(prefix = "spring.rabbit")
+@ConditionalOnProperty("spring.rabbit.host")
 @Configuration
 public class RabbitMQConfig {
 
@@ -33,6 +41,8 @@ public class RabbitMQConfig {
     private String password;
 
     private String virtualHost;
+
+    private String apiUrl;
 
     @Bean
     public ConnectionFactory connectionFactory() {
@@ -52,6 +62,12 @@ public class RabbitMQConfig {
     @Bean
     public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
         return new RabbitTemplate(connectionFactory);
+    }
+
+    @Bean
+    public RabbitMQHttpClient client() throws MalformedURLException, URISyntaxException {
+        RabbitMQHttpClient client = new RabbitMQHttpClient(apiUrl, username, password);
+        return client;
     }
 
     @Bean("notifyExchange")
@@ -106,5 +122,13 @@ public class RabbitMQConfig {
 
     public void setVirtualHost(String virtualHost) {
         this.virtualHost = virtualHost;
+    }
+
+    public String getApiUrl() {
+        return apiUrl;
+    }
+
+    public void setApiUrl(String apiUrl) {
+        this.apiUrl = apiUrl;
     }
 }

@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @time: 2018/11/19 14:57
  * @description
  */
-public class DataPublisherRabbitMQImpl {
+public class DataPublisherRabbitMQImpl implements DataPublisherRabbitMQ {
 
     private static final Logger log = LoggerFactory.getLogger(DataPublisherRabbitMQImpl.class);
 
@@ -29,9 +29,11 @@ public class DataPublisherRabbitMQImpl {
     @Autowired
     private TopicExchange dataExchange;
 
+    @Override
     public void doPublish(String clientId, String dataKey, EventBaseDTO data) {
         try {
             sendData(dataKey, data);
+            log.info("推送信息,{}", data);
             String notifier = NOTIFIER.concat(clientId);
             sendNoftify(notifier, dataKey);
         } catch (Exception e) {

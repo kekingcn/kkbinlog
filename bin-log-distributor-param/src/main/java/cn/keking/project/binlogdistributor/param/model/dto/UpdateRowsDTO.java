@@ -2,6 +2,7 @@ package cn.keking.project.binlogdistributor.param.model.dto;
 
 import cn.keking.project.binlogdistributor.param.enums.DatabaseEvent;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -9,7 +10,10 @@ import java.util.List;
  * @Ddate Created in 2018/19/01/2018/3:18 PM
  * @modified by
  */
-public class UpdateRowsDTO extends EventBaseDTO {
+public class UpdateRowsDTO extends EventBaseDTO implements Serializable {
+
+    private static final long serialVersionUID = 3615869271596131001L;
+
     private List<UpdateRow> rows;
 
     public UpdateRowsDTO() {

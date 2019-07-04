@@ -3,7 +3,6 @@ package cn.keking.project.binlogdistributor.app.service;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author zhenhui
@@ -19,11 +18,11 @@ public interface ClientService {
     void addClient(ClientInfo clientInfo);
 
     /**
-     * 列出正常队列
+     * 客户端订阅信息
      *
      * @return
      */
-    Set<ClientInfo> listClient();
+    List<ClientInfo> listClient(String queryType);
 
     /**
      * 列出所有应用的错误队列
@@ -48,9 +47,15 @@ public interface ClientService {
     String getqueuesize(String clientName,String type,int page);
 
     /**
-     * 重新入队或删除
+     * 删除队列中该条记录
      * @param uuid :uuid
+     * @param errClient 对列名
      * @return
      */
-    boolean enqueueOrdDlete(String uuid,String dataKey,String type,String errClient);
+    boolean deleteFromQueue(String uuid,String errClient);
+
+    /**
+     * 获取所有的namespace
+     */
+    List<String> listNamespace();
 }

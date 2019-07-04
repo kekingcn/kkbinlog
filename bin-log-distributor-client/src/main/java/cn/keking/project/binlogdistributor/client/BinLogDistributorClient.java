@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author zhenhui
  * @Ddate Created in 2018/18/01/2018/7:20 PM
- * @modified by chenjh
+ * @modified by
  */
 public class BinLogDistributorClient {
     private final static Logger log = Logger.getLogger(BinLogDistributorClient.class.toString());
@@ -121,7 +121,7 @@ public class BinLogDistributorClient {
         HandleDatabaseEvent ann = clazz.getAnnotation(HandleDatabaseEvent.class);
         if (ann != null) {
             handlers.add(clazz);
-            return Arrays.stream(ann.events()).map(e -> ann.database() + ann.table() + e).collect(Collectors.toList());
+            return Arrays.stream(ann.events()).map(e -> ann.namespace() + ann.database() + ann.table() + e).collect(Collectors.toList());
         }
         return new ArrayList<>(0);
     }
@@ -138,7 +138,7 @@ public class BinLogDistributorClient {
                 List<ClientInfo> clients = new ArrayList<>();
                 handlers.stream().map(h -> h.getAnnotation(HandleDatabaseEvent.class))
                         .forEach(a -> Arrays.stream(a.events())
-                                .map(e -> new ClientInfo(clientId, queueType, a.database(), a.table(), e, a.lockLevel(), a.columnName())).forEach(clients::add));
+                                .map(e -> new ClientInfo(clientId, queueType, a.namespace(), a.database(), a.table(), e, a.lockLevel(), a.columnName())).forEach(clients::add));
                 // TODO: 19/01/2018 不想在这个项目中引入json解析的包,看下有没更好的解决方案
                 RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), Arrays.toString(clients.toArray()));
                 Request request = new Request.Builder()
@@ -178,7 +178,8 @@ public class BinLogDistributorClient {
      * @param dto
      */
     public void handle(EventBaseDTO dto) {
-        String key = dto.getDatabase() + dto.getTable() + dto.getEventType();
+
+        String key = dto.getNamespace() + dto.getDatabase() + dto.getTable() + dto.getEventType();
         HANDLER_MAP.get(key).handle(dto);
     }
 

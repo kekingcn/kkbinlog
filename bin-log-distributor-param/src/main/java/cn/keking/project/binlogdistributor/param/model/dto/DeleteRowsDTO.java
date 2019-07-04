@@ -11,7 +11,10 @@ import java.util.Map;
  * @Ddate Created in 2018/19/01/2018/3:18 PM
  * @modified by
  */
-public class DeleteRowsDTO extends EventBaseDTO {
+public class DeleteRowsDTO extends EventBaseDTO implements Serializable {
+
+    private static final long serialVersionUID = -958814764356190600L;
+
     private List<Map<String, Serializable>> rowMaps;
 
     public DeleteRowsDTO() {

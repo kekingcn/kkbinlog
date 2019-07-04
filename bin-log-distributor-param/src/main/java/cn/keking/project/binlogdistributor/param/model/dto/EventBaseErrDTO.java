@@ -8,6 +8,9 @@ import java.io.Serializable;
  * @modified by
  */
 public class EventBaseErrDTO implements Serializable {
+
+    private static final long serialVersionUID = 4556335110286780329L;
+
     private EventBaseDTO eventBaseDTO;
     private Exception exception;
     private String dataKey;

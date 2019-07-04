@@ -3,22 +3,15 @@ package cn.keking.project.binlogdistributor.app.web.controller;
 import cn.keking.project.binlogdistributor.app.service.ClientService;
 import cn.keking.project.binlogdistributor.app.util.Result;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
-import cn.keking.project.binlogdistributor.param.model.dto.EventBaseDTO;
-import cn.keking.project.binlogdistributor.param.model.dto.EventBaseErrDTO;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import javafx.geometry.Pos;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -37,8 +30,23 @@ public class ClientController {
 
     @RequestMapping(value = "/add", method = POST)
     public Result add(@RequestBody String data) {
-        ClientInfo clientInfo = JSON.parseObject(data, ClientInfo.class);
-        clientService.addClient(clientInfo);
+        JSONObject jsonObject = JSON.parseObject(data);
+        JSONArray databaseEventList = jsonObject.getJSONArray("databaseEvent");
+        for (int i = 0; i < databaseEventList.size(); i++) {
+            JSONObject object = JSON.parseObject(data);
+            object.put("databaseEvent", databaseEventList.getString(i));
+            //前端页面添加的默认都是表级锁
+            object.put("lockLevel", "TABLE");
+            ClientInfo clientInfo = JSON.parseObject(JSON.toJSONString(object), ClientInfo.class);
+            //生成key字符串
+            clientInfo = new ClientInfo(
+                    clientInfo.getClientId(),
+                    clientInfo.getQueueType(),
+                    clientInfo.getNamespace(),
+                    clientInfo.getDatabaseName(),
+                    clientInfo.getTableName(), clientInfo.getDatabaseEvent(), clientInfo.getLockLevel(), clientInfo.getColumnName());
+            clientService.addClient(clientInfo);
+        }
         return new Result(Result.SUCCESS, "添加成功");
     }
 
@@ -51,12 +59,39 @@ public class ClientController {
     }
 
     /**
-     * 列出正常队列
+     * 列出所有队列
      * @return
      */
     @RequestMapping(value = "/list", method = GET)
-    public Set<ClientInfo> list() {
-        return clientService.listClient();
+    public List<ClientInfo> list() {
+        return clientService.listClient(null);
+    }
+
+    /**
+     * 列出Redis队列
+     * @return
+     */
+    @RequestMapping(value = "/listRedis", method = GET)
+    public List<ClientInfo> listRedis() {
+        return clientService.listClient(ClientInfo.QUEUE_TYPE_REDIS);
+    }
+
+    /**
+     * 列出Rabbit队列
+     * @return
+     */
+    @RequestMapping(value = "/listRabbit", method = GET)
+    public List<ClientInfo> listRabbit() {
+        return clientService.listClient(ClientInfo.QUEUE_TYPE_RABBIT);
+    }
+
+    /**
+     * 列出Kafka队列
+     * @return
+     */
+    @RequestMapping(value = "/listKafka", method = GET)
+    public List<ClientInfo> listKafka() {
+        return clientService.listClient(ClientInfo.QUEUE_TYPE_KAFKA);
     }
 
     /**
@@ -80,7 +115,7 @@ public class ClientController {
      * @return
      */
     @RequestMapping(value = "/getqueuesize", method = GET)
-    public String getQueueSize(String clientName,String type,int page) {
+    public String getQueueSize(String clientName,String type,Integer page) {
         return clientService.getqueuesize(clientName,type,page);
     }
     /**
@@ -96,12 +131,18 @@ public class ClientController {
     /**
      * 错误队列重新入队
      * @param uuid uuid
-     * @param type 类型：delete:删除；enqueue:重新入队
+     * @param errClient 队列名
      * @return
      */
-    @RequestMapping(value = "/enqueueAgainOrDelete",method =GET)
-    public boolean enqueueAgain(String uuid,String dataKey,String type,String errClient){
-        return clientService.enqueueOrdDlete(uuid,dataKey,type,errClient);
+    @RequestMapping(value = "/deleteFromQueue",method =GET)
+    public boolean enqueueAgain(String uuid,String errClient){
+        return clientService.deleteFromQueue(uuid,errClient);
+    }
+
+    @GetMapping("/namespaceList")
+    public List<String> namespaceList() {
+
+        return clientService.listNamespace();
     }
 }
 

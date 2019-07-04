@@ -1,22 +1,25 @@
 package cn.keking.project.binlogdistributor.app.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
 /**
- * @author zhenhui
- * @date Created in 2018/16/01/2018/6:22 PM
- * @modified by
+ * @author T-lih
  */
-@ConfigurationProperties(prefix = "binaryLog")
-@Configuration
 public class BinaryLogConfig {
 
+    private String namespace;
     private String host;
     private Integer port;
     private String username;
     private String password;
     private Integer serverId;
+
+    private String dataSourceUrl;
+
+    private String driverClassName = "com.mysql.jdbc.Driver";
+
+    private boolean deletable = false;
+
+    private volatile boolean active = false;
+
     /**
      * 在redis中保存状态的key名称
      */
@@ -80,5 +83,45 @@ public class BinaryLogConfig {
 
     public void setBinLogClientSet(String binLogClientSet) {
         this.binLogClientSet = binLogClientSet;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public String getDataSourceUrl() {
+        return dataSourceUrl;
+    }
+
+    public void setDataSourceUrl(String dataSourceUrl) {
+        this.dataSourceUrl = dataSourceUrl;
+    }
+
+    public String getDriverClassName() {
+        return driverClassName;
+    }
+
+    public void setDriverClassName(String driverClassName) {
+        this.driverClassName = driverClassName;
+    }
+
+    public boolean isDeletable() {
+        return deletable;
+    }
+
+    public void setDeletable(boolean deletable) {
+        this.deletable = deletable;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

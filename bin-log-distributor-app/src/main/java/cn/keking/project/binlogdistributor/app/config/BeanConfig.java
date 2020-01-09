@@ -7,16 +7,19 @@ import cn.keking.project.binlogdistributor.param.model.dto.EventBaseDTO;
 import cn.keking.project.binlogdistributor.pub.DataPublisher;
 import cn.keking.project.binlogdistributor.pub.impl.*;
 import com.rabbitmq.http.client.domain.QueueInfo;
+import org.I0Itec.zkclient.ZkClient;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.cors.CorsConfiguration;
@@ -38,8 +41,14 @@ public class BeanConfig {
     @Autowired
     private RedissonClient redissonClient;
 
-    @Bean
-    DataPublisher dataPublisher(){
+    @Bean("binlogDataPublisher")
+    @Primary
+    public DataPublisher binlogDataPublisher(){
+        return new DataPublisher();
+    }
+
+    @Bean("opLogDataPublisher")
+    public DataPublisher opLogDataPublisher(){
         return new DataPublisher();
     }
 
@@ -53,6 +62,7 @@ public class BeanConfig {
         }
         return dataPublisher;
     }
+
 
     @Bean
     @ConditionalOnProperty("spring.rabbit.host")
@@ -88,10 +98,10 @@ public class BeanConfig {
 
     @Bean
     @ConditionalOnProperty("spring.kafka.bootstrap-servers")
-    public DataPublisherKafka dataPublisherKafka(KafkaTemplate<String,Object> kafkaTemplate) {
+    public DataPublisherKafka dataPublisherKafka(KafkaTemplate<String,Object> kafkaTemplate, ZkClient zkClient) {
         DataPublisherKafkaImpl dataPublisher = null;
         try {
-            dataPublisher = new DataPublisherKafkaImpl(kafkaTemplate);
+            dataPublisher = new DataPublisherKafkaImpl(kafkaTemplate, zkClient);
         } catch (Exception e) {
             log.error("初始化队列实现失败", e);
         }
@@ -110,10 +120,7 @@ public class BeanConfig {
     public KafkaService kafkaService() {
         return new KafkaService() {
             @Override
-            public void createTopic(String topicName, int partitions, int replication) {}
-
-            @Override
-            public void createKafkaTopic(ClientInfo clientInfo) {}
+            public void createKafkaTopic(ClientInfo clientInfo, Integer partitions, Integer replication) {}
         };
     }
 

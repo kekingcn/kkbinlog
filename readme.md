@@ -1,6 +1,6 @@
 # 1 概述
->mysql数据变动监听分发
->本项目意在简化监听mysql数据库的不同表的各种数据变动
+>mysql、MongoDB数据变动监听分发
+>本项目意在简化监听mysql、MongoDB数据库的不同表的各种数据变动
 >项目依赖redis,mysql
 >使用场景：刷新缓存、异构系统...
 
@@ -16,36 +16,28 @@
 # redis地址
 spring.redisson.address=redis://192.168.1.204:6379
 
-# mysql数据源配置 开启日志同步账户需要REPLICATION SLAVE权限
-binaryLog.configs[0].namespace = default                       
-binaryLog.configs[0].host = 127.0.0.1
-binaryLog.configs[0].port = 3306
-binaryLog.configs[0].username = binlog
-binaryLog.configs[0].password = binlog
-binaryLog.configs[0].serverId = 1
-binaryLog.configs[0].dataSourceUrl = jdbc:mysql://127.0.0.1:3306/mysql?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8
-binaryLog.configs[0].driverClassName = com.mysql.jdbc.Driver
+# mysql日志同步账户,
+binaryLog.host = 192.168.1.204
+binaryLog.port = 3306
+binaryLog.username = aa
+binaryLog.password = aa
+binaryLog.serverId = 1
 
-# rabbitmq连接相关信息(当开启rabbitmq时启用)
+# 读取列名，进行映射
+spring.datasource.url = jdbc:mysql://${binaryLog.host}:${binaryLog.port}/mysql?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8
+spring.datasource.username = ${binaryLog.username}
+spring.datasource.password = ${binaryLog.password}
+spring.datasource.driverClassName = com.mysql.jdbc.Driver
+
+# rabbitmq连接相关信息(如果只有redis客户端可以不需要使用)
 spring.rabbit.host = 192.168.1.204
 spring.rabbit.port = 5672
 spring.rabbit.username = aa
 spring.rabbit.password = aa
 spring.rabbit.virtualHost = /binlog
-
-#kafka连接相关信息(当开启kafka时启用)
-spring.kafka.bootstrap-servers = 127.0.0.1:9092
-spring.kafka.producer.value-serializer = org.springframework.kafka.support.serializer.JsonSerializer
-spring.kafka.consumer.group-id = test.binlog
-kafka.zk.servers = 127.0.0.1:2181
-kafka.zk.partitions = 1
-kafka.zk.replications = 1
 ```
 
-其中rabbitmq和kafka的配置是非必须的，只有在配置了`spring.rabbit.host`或`spring.kafka.bootstrap-servers`时才会启用相应的消息队列。
-
 ### 2.1.2 启动方式
-
 编译打包项目，直接通过（java -jar）启动bin-log-distributor-app-${version}-SNAPSHOT.jar，可参考[spring boot手册](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-running-your-application)
 
 ## 2.2 客户端
@@ -210,86 +202,8 @@ public class DatabaseEventListener {
 }
 ```
 
-### 2.2.3 kafka
-目前kafka仅有消息推送，没有相应的客户端，可以通过前端管理模块管理。
-
-# 2.3 多数据源监听
-
-多数据源是通过命名空间namespace来实现数据和逻辑的隔离，程序通过(命名空间 + 数据库名 + 表名)来定位需要监听的表，考虑到会监听不同数据源同名数据库和同名表的可能性，所以命名空间被设计为在系统范围内是唯一的。
-
-首先在服务端配置多个数据源。
-```
-# mysql数据源1配置 开启日志同步账户需要REPLICATION SLAVE权限
-binaryLog.configs[0].namespace = default                       
-binaryLog.configs[0].host = 127.0.0.1
-binaryLog.configs[0].port = 3306
-binaryLog.configs[0].username = binlog
-binaryLog.configs[0].password = binlog
-binaryLog.configs[0].serverId = 1
-binaryLog.configs[0].dataSourceUrl = jdbc:mysql://127.0.0.1:3306/mysql?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8
-binaryLog.configs[0].driverClassName = com.mysql.jdbc.Driver
-
-# mysql数据源2配置 开启日志同步账户需要REPLICATION SLAVE权限
-binaryLog.configs[1].namespace = another
-binaryLog.configs[1].host = 127.0.0.1
-binaryLog.configs[1].port = 3307
-binaryLog.configs[1].username = binlog
-binaryLog.configs[1].password = binlog
-binaryLog.configs[1].serverId = 2
-binaryLog.configs[1].dataSourceUrl = jdbc:mysql://127.0.0.1:3307/mysql?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8
-binaryLog.configs[1].driverClassName = com.mysql.jdbc.Driver
-```
-上面配置了两个数据源，命名空间分别是default和another，下面来配置客户端。
-
-监听数据源1，当`@HandleDatabaseEvent`注解中没有配置namespace属性时，默认监听命名空间是default的数据源。
-```java
-@Service
-@HandleDatabaseEvent(database = "world", table = "city", events = {DatabaseEvent.WRITE_ROWS,DatabaseEvent.UPDATE_ROWS, DatabaseEvent.DELETE_ROWS},lockLevel = LockLevel.TABLE)
-public class ExampleDataEventHandler implements DatabaseEventHandler {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExampleDataEventHandler.class);
-
-    /**
-     * 此方法处理变更信息
-     * @param eventBaseDTO
-     */
-    @Override
-    public void handle(EventBaseDTO eventBaseDTO) {
-        LOGGER.info("接收信息:" + eventBaseDTO.toString());
-    }
-
-    @Override
-    public Class getClazz() {
-        return ExampleDataEventHandler.class;
-    }
-}
-```
-监听数据源2
-```java
-@Service
-@HandleDatabaseEvent(namespace = "another", database = "sakila", table = "film", events = {DatabaseEvent.WRITE_ROWS,DatabaseEvent.UPDATE_ROWS, DatabaseEvent.DELETE_ROWS},lockLevel = LockLevel.TABLE)
-public class ExampleDataEventHandler2 implements DatabaseEventHandler {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExampleDataEventHandler2.class);
-
-    /**
-     * 此方法处理变更信息
-     * @param eventBaseDTO
-     */
-    @Override
-    public void handle(EventBaseDTO eventBaseDTO) {
-        LOGGER.info("[another数据源]接收信息:" + eventBaseDTO.toString());
-    }
-
-    @Override
-    public Class getClazz() {
-        return ExampleDataEventHandler2.class;
-    }
-}
-```
 
 
-# 2.4 前端管理模块
->前端管理服务模块是基于vue的管理各个应用监听状况及数据源的管理界面
-
+# 2.3 前端管理模块
+>前端管理服务模块是基于vue的管理各个应用监听状况的管理界面
 # 3 其他

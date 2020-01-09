@@ -1,9 +1,9 @@
 <template>
   <el-form :model="ruleForm2" :rules="rules2" ref="ruleForm2" label-position="left" label-width="0px"
            class="demo-ruleForm login-container">
-    <h3 class="title">binLog</h3>
+    <h3 class="title">binLogClient-ams</h3>
     <el-form-item prop="account">
-      <el-input type="text" v-model="ruleForm2.account" auto-complete="off" placeholder="用户名/邮箱/手机号"
+      <el-input type="text" v-model="ruleForm2.account" auto-complete="off" placeholder="输入任意字符登录"
                 @blur="" :autofocus="focusStatus"></el-input>
     </el-form-item>
     <el-form-item prop="checkPass">
@@ -17,7 +17,8 @@
 </template>
 
 <script>
-
+  import {requestLogin} from '../api/api';
+  import cookies from 'vue-cookies';
   export default {
     data() {
       return {
@@ -42,21 +43,18 @@
     methods: {
       handleSubmit2() {
           this.userName=this.ruleForm2.account;
-          this.submit()
+          this.submit();
       },
       submit(){
-        console.log('??????????')
-        this.$router.push('/clientList');
-        return
         this.$refs.ruleForm2.validate((valid) => {
           if (valid) {
-
-            this.$router.push({path: '/logProgress'});
+            cookies.set("keking_token", "需要对接自己的认证系统");
+            sessionStorage.setItem('user', '{"username":"' + this.userName + '","token":"a"}');
+            this.$router.push({path: '/datasourceList'});
             this.$message({
               message: '登录成功',
               type: 'success'
             })
-
           } else {
             return false;
           }
@@ -79,6 +77,7 @@
     background: #fff;
     border: 1px solid #eaeaea;
     box-shadow: 0 0 25px #cac6c6;
+  }
   .title {
     margin: 0px auto 40px auto;
     text-align: center;
@@ -87,5 +86,5 @@
   .remember {
     margin: 0px 0px 35px 0px;
   }
-  }
+
 </style>

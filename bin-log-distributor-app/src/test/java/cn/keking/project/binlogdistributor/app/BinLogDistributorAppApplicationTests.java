@@ -1,5 +1,6 @@
 package cn.keking.project.binlogdistributor.app;
 
+import cn.keking.project.binlogdistributor.app.service.KafkaService;
 import cn.keking.project.binlogdistributor.param.model.dto.UpdateRowsDTO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,14 +20,19 @@ public class BinLogDistributorAppApplicationTests {
 
 	Logger logger = LoggerFactory.getLogger(getClass());
 
-	private final static String TOPICS = "kl-bin-log666";
+//	private final static String TOPICS = "BIN-LOG-DATA-kl-binlog-test-TABLE-YDWXDB-yd_sales_app_input_date";
+private final static String TOPICS = "kl-bin-log666";
+
 
 	@Autowired
 	private KafkaTemplate template;
 
+	@Autowired
+	private KafkaService kafkaService;
+
 	@Test
 	public void kafkaCreateTopic(){
-
+	//	kafkaService.createKafkaTopic("kkkkkkkk-admin-999");
 	}
 	@Test
 	public void prod() throws Exception {

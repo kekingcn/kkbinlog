@@ -1,11 +1,13 @@
-package cn.keking.project.binlogdistributor.app.service;
+package cn.keking.project.binlogdistributor.app.service.binlog;
 
-import cn.keking.project.binlogdistributor.app.service.impl.*;
+import cn.keking.project.binlogdistributor.param.enums.DatabaseEvent;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
 import com.github.shyiko.mysql.binlog.event.EventHeader;
 import com.github.shyiko.mysql.binlog.event.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * 根据类型提供事件的handler
@@ -29,6 +31,8 @@ public class BinLogEventHandlerFactory {
 
     BinLogRotateEventHandler binLogRotateEventHandler;
 
+    BinLogDDLEventHandler binLogDDLEventHandler;
+
     public BinLogEventHandlerFactory(BinLogEventContext context) {
 
         this.binLogUpdateEventHandler = new BinLogUpdateEventHandler(context);
@@ -37,6 +41,7 @@ public class BinLogEventHandlerFactory {
         this.binLogDefaultEventHandler = new BinLogDefaultEventHandler(context);
         this.binLogTableMapEventHandler = new BinLogTableMapEventHandler(context);
         this.binLogRotateEventHandler = new BinLogRotateEventHandler(context);
+        this.binLogDDLEventHandler = new BinLogDDLEventHandler(context);
     }
 
     public BinLogEventHandler getHandler(EventHeader header) {
@@ -53,6 +58,8 @@ public class BinLogEventHandlerFactory {
         } else if (EventType.ROTATE.equals(header.getEventType())) {
             log.debug("RotateEvent-header:{}", header);
             return binLogRotateEventHandler;
+        }else if(EventType.QUERY.equals(header.getEventType())){
+            return binLogDDLEventHandler;
         } else {
             log.debug("不处理事件,{}", header);
             return binLogDefaultEventHandler;
@@ -78,7 +85,7 @@ public class BinLogEventHandlerFactory {
         }
     }
 
-    public  void deleteClient(ClientInfo clientInfo){
+    public void deleteClient(ClientInfo clientInfo){
         switch (clientInfo.getDatabaseEvent()) {
             case WRITE_ROWS:
                 binLogWriteEventHandler.deleteClient(clientInfo);
@@ -94,6 +101,26 @@ public class BinLogEventHandlerFactory {
                 break;
             default:
                 log.warn("删除客户端关注变动出现未知类型，参数如下：{}", clientInfo);
+        }
+    }
+
+    public void updateClientBatch(DatabaseEvent databaseEvent, List<ClientInfo> clientInfoList) {
+
+        switch (databaseEvent) {
+            case WRITE_ROWS:
+                binLogWriteEventHandler.updateClientBatch(clientInfoList);
+                log.info("更新客户端成功，参数如下：{}", clientInfoList);
+                break;
+            case DELETE_ROWS:
+                binLogDeleteEventHandler.updateClientBatch(clientInfoList);
+                log.info("更新客户端成功，参数如下：{}", clientInfoList);
+                break;
+            case UPDATE_ROWS:
+                binLogUpdateEventHandler.updateClientBatch(clientInfoList);
+                log.info("更新客户端成功，参数如下：{}", clientInfoList);
+                break;
+            default:
+                log.warn("更新客户端成功关注变动出现未知类型，参数如下：{}", clientInfoList);
         }
     }
 }

@@ -1,8 +1,6 @@
-package cn.keking.project.binlogdistributor.app.service.impl;
+package cn.keking.project.binlogdistributor.app.service.binlog;
 
 import cn.keking.project.binlogdistributor.app.model.ColumnsTableMapEventData;
-import cn.keking.project.binlogdistributor.app.service.BinLogEventContext;
-import cn.keking.project.binlogdistributor.app.service.BinLogEventHandler;
 import cn.keking.project.binlogdistributor.param.enums.DatabaseEvent;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
 import cn.keking.project.binlogdistributor.param.model.dto.EventBaseDTO;
@@ -13,12 +11,9 @@ import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
+
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * @author zhenhui

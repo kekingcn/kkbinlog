@@ -74,10 +74,14 @@
             <el-table :data="abnormalQueue"  ref="multipleTable">
               <el-table-column type="index" width="50"></el-table-column>
               <el-table-column prop="table" label="表" align="center"></el-table-column>
+              <el-table-column prop="projNo" label="项目编号" align="center"></el-table-column>
+              <el-table-column prop="cycle" label="期次" align="center"></el-table-column>
+              <el-table-column prop="repayType" label="偿还方式" align="center"></el-table-column>
               <el-table-column prop="eventType" label="事件" align="center"></el-table-column>
               <el-table-column label="操作" align="center">
                 <template slot-scope="scope">
                   <el-button @click="deleteFromQueue(scope.row.uuid,item)">删除</el-button>
+                  <el-button @click="enqueueAndDelete(scope.row.table,scope.row.projNo,scope.row.cycle,scope.row.uuid,item)">同步并删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -88,7 +92,7 @@
   </el-tabs>
 </template>
 <script>
-  import {getqueuesize, getRedisClientList, getRabbitClientList, getKafkaClientList, getErrorClientList,deleteFromQueue} from '../api/api'
+  import {getqueuesize, getRedisClientList, getRabbitClientList, getKafkaClientList, getErrorClientList,deleteFromQueue,doSyncToHis} from '../api/api'
   import Vue from 'vue'
 
   export default {
@@ -199,8 +203,11 @@
                 const {beforeRowMap, afterRowMap} = row;
                 let object = {};
                 object.eventType = eventType;
-                object.table = table;
+                object.table = table === "ams_proj_plan" ? "plan(偿还表)" : table === "ams_proj_rcvl" ? "rcvl(应收表)" : table;
                 object.uuid = uuid;
+                object.projNo = afterRowMap.proj_no;
+                object.cycle = afterRowMap.cycle_num;
+                object.repayType = afterRowMap.repay_type;
                 error.push(object);
               }
             });
@@ -209,14 +216,33 @@
             rowMaps.forEach(row => {
               let object = {};
               object.eventType = eventType;
-              object.table = table;
+              object.table = table === "ams_proj_plan" ? "plan(偿还表)" : table === "ams_proj_rcvl" ? "rcvl(应收表)" : table;
               object.uuid = uuid;
+              object.projNo = row.proj_no;
+              object.cycle = row.cycle_num;
+              object.repayType = row.repay_type;
               error.push(object);
             });
           }
         });
         this.abnormalQueue = error;
+      },
+      enqueueAndDelete(table,projectNo,cycles,uuid,item){
+        doSyncToHis({
+          userName: this.sysUserName,
+          table: table,
+          projNO: projectNo,
+          cycles:cycles
+        }).then(res => {
+          if (res.data.code === 0) {
+            //同步成功后删除记录
+            this.deleteFromQueue(uuid,item)
+          } else {
+            this.$message.error(JSON.stringify(res.data))
+          }
+        });
       }
+
     },
     mounted() {
       getRedisClientList('').then((res) => {

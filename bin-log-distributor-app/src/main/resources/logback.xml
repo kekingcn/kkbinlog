@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
     <appender name="consoleRolling" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} ${appName} [%thread] %-5level %logger{35} -%msg%n</Pattern>
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <logger name="cn.keking" level="info" additivity="false">
+        <appender-ref ref="consoleRolling"/>
+    </logger>
+    <root level="info">
         <appender-ref ref="consoleRolling"/>
     </root>
+
 </configuration>

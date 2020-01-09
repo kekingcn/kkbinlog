@@ -7,6 +7,7 @@
     <version>0.5.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <description>支持在线管理MySQL、MongoDB数据源数据变更订阅分发的项目</description>
     <modules>
         <module>bin-log-distributor-app</module>
         <module>bin-log-distributor-param</module>
@@ -22,8 +23,25 @@
         <module>bin-log-distributor-example-multi-datasource</module>
     </modules>
 
-    <name>bin-log-distributor</name>
-    <url>http://maven.apache.org</url>
+    <scm>
+        <url>https://github.com/kekingcn/keking-binlog-distributor.git</url>
+    </scm>
+    <issueManagement>
+        <url>https://github.com/kekingcn/keking-binlog-distributor/issues</url>
+    </issueManagement>
+    <developers>
+        <developer>
+            <name>wanglaomo</name>
+            <email>wjlcoder@outlook.com</email>
+            <url>https://github.com/wanglaomo</url>
+        </developer>
+        <developer>
+            <name>kl</name>
+            <email>632104866@QQ.com</email>
+            <url>https://github.com/klboke</url>
+            <organizationUrl>http://www.kailing.pub/</organizationUrl>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -56,4 +74,17 @@
             </plugin>
         </plugins>
     </build>
+    <!-- distribute目录 -->
+    <distributionManagement>
+        <repository>
+            <id>repo</id>
+            <name>User Project Releases</name>
+            <url>http://ops.keking.cn:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>repo</id>
+            <name>User Project SNAPSHOTS</name>
+            <url>http://ops.keking.cn:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

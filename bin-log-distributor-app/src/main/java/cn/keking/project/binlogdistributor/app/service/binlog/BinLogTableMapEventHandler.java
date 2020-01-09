@@ -1,8 +1,6 @@
-package cn.keking.project.binlogdistributor.app.service.impl;
+package cn.keking.project.binlogdistributor.app.service.binlog;
 
 import cn.keking.project.binlogdistributor.app.model.ColumnsTableMapEventData;
-import cn.keking.project.binlogdistributor.app.service.BinLogEventContext;
-import cn.keking.project.binlogdistributor.app.service.BinLogEventHandler;
 import com.github.shyiko.mysql.binlog.event.Event;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import org.slf4j.Logger;

@@ -1,25 +1,24 @@
-package cn.keking.project.binlogdistributor.app.service;
+package cn.keking.project.binlogdistributor.app.service.oplog;
 
 import cn.keking.project.binlogdistributor.app.config.BinaryLogConfig;
 import cn.keking.project.binlogdistributor.app.model.ColumnsTableMapEventData;
-import cn.keking.project.binlogdistributor.param.model.ClientInfo;
+import cn.keking.project.binlogdistributor.app.service.EtcdService;
 import cn.keking.project.binlogdistributor.pub.DataPublisher;
-import org.redisson.api.RedissonClient;
+import com.mongodb.MongoClient;
 
 import javax.sql.DataSource;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author wanglaomo
- * @since 2019/6/4
- **/
-public class BinLogEventContext {
+ * @author: kl @kailing.pub
+ * @date: 2020/1/7
+ */
+public class OpLogEventContext {
 
-    private DataSource dataSource;
+    private MongoClient  mongoClient;
 
-    private RedissonClient redissonClient;
+    private EtcdService etcdService;
 
     private BinaryLogConfig binaryLogConfig;
 
@@ -27,19 +26,19 @@ public class BinLogEventContext {
 
     protected final Map<Long, ColumnsTableMapEventData> TABLE_MAP_ID = new ConcurrentHashMap<>();
 
-    public BinLogEventContext(DataSource dataSource, RedissonClient redissonClient, BinaryLogConfig binaryLogConfig, DataPublisher dataPublisher) {
-        this.dataSource = dataSource;
-        this.redissonClient = redissonClient;
+    public OpLogEventContext(MongoClient mongoClient, EtcdService etcdService, BinaryLogConfig binaryLogConfig, DataPublisher dataPublisher) {
+        this.mongoClient = mongoClient;
+        this.etcdService = etcdService;
         this.binaryLogConfig = binaryLogConfig;
         this.dataPublisher = dataPublisher;
     }
 
-    public DataSource getDataSource() {
-        return dataSource;
+    public MongoClient getMongoClient() {
+        return mongoClient;
     }
 
-    public RedissonClient getRedissonClient() {
-        return redissonClient;
+    public void setMongoClient(MongoClient mongoClient) {
+        this.mongoClient = mongoClient;
     }
 
     public BinaryLogConfig getBinaryLogConfig() {
@@ -56,5 +55,9 @@ public class BinLogEventContext {
 
     public ColumnsTableMapEventData getTableMapData(long tableId) {
         return TABLE_MAP_ID.get(tableId);
+    }
+
+    public EtcdService getEtcdService() {
+        return etcdService;
     }
 }

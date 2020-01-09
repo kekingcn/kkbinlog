@@ -11,7 +11,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
-const env = require('../config/uat.env')
+const env = config.uat.env
 
 const uatWebpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -21,9 +21,9 @@ const uatWebpackConfig = merge(baseWebpackConfig, {
       usePostCSS: true
     })
   },
-  devtool: config.dev204.productionSourceMap ? '#source-map' : false,
+  devtool: config.uat.productionSourceMap ? '#source-map' : false,
   output: {
-    path: config.dev204.assetsRoot,
+    path: config.uat.assetsRoot,
     filename: utils.assetsPath('js/[name].[chunkhash].js'),
     chunkFilename: utils.assetsPath('js/[id].[chunkhash].js')
   },
@@ -38,7 +38,7 @@ const uatWebpackConfig = merge(baseWebpackConfig, {
           warnings: false
         }
       },
-      sourceMap: config.dev204.productionSourceMap,
+      sourceMap: config.uat.productionSourceMap,
       parallel: true
     }),
     // extract css into its own file
@@ -53,7 +53,7 @@ const uatWebpackConfig = merge(baseWebpackConfig, {
     // Compress extracted CSS. We are using this plugin so that possible
     // duplicated CSS from different components can be deduped.
     new OptimizeCSSPlugin({
-      cssProcessorOptions: config.dev204.productionSourceMap
+      cssProcessorOptions: config.uat.productionSourceMap
         ? { safe: true, map: { inline: false } }
         : { safe: true }
     }),
@@ -61,7 +61,7 @@ const uatWebpackConfig = merge(baseWebpackConfig, {
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
     new HtmlWebpackPlugin({
-      filename: config.dev204.index,
+      filename: config.uat.index,
       template: 'index.html',
       inject: true,
       minify: {
@@ -112,23 +112,23 @@ const uatWebpackConfig = merge(baseWebpackConfig, {
     new CopyWebpackPlugin([
       {
         from: path.resolve(__dirname, '../static'),
-        to: config.dev204.assetsSubDirectory,
+        to: config.uat.assetsSubDirectory,
         ignore: ['.*']
       }
     ])
   ]
 })
 
-if (config.dev204.productionGzip) {
+if (config.uat.productionGzip) {
   const CompressionWebpackPlugin = require('compression-webpack-plugin')
 
-  dev204WebpackConfig.plugins.push(
+  uatWebpackConfig.plugins.push(
     new CompressionWebpackPlugin({
       asset: '[path].gz[query]',
       algorithm: 'gzip',
       test: new RegExp(
         '\\.(' +
-        config.dev204.productionGzipExtensions.join('|') +
+        config.uat.productionGzipExtensions.join('|') +
         ')$'
       ),
       threshold: 10240,
@@ -137,7 +137,7 @@ if (config.dev204.productionGzip) {
   )
 }
 
-if (config.dev204.bundleAnalyzerReport) {
+if (config.uat.bundleAnalyzerReport) {
   const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
   uatWebpackConfig.plugins.push(new BundleAnalyzerPlugin())
 }

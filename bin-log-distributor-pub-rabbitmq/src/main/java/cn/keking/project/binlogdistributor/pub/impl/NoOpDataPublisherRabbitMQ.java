@@ -16,4 +16,10 @@ public class NoOpDataPublisherRabbitMQ implements DataPublisherRabbitMQ {
     public void doPublish(String clientId, String dataKey, EventBaseDTO data) {
         logger.warn("System don't support rabbitmq data publisher, however it has been subscribed by client:[{}]", clientId);
     }
+
+    @Override
+    public boolean deleteTopic(String topicName) {
+        logger.warn("System don't support rabbitmq data publisher, however it has been commanded to delete topic:[{}]", topicName);
+        return false;
+    }
 }

@@ -23,6 +23,7 @@ public class EventBaseDTO implements Serializable {
     private String database;
     private String table;
     private String namespace;
+    private Long timestamp = System.currentTimeMillis();
 
     public EventBaseDTO() {
     }
@@ -81,6 +82,14 @@ public class EventBaseDTO implements Serializable {
         this.namespace = namespace;
     }
 
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -102,6 +111,7 @@ public class EventBaseDTO implements Serializable {
                 ", namespace='" + namespace + '\'' +
                 ", database='" + database + '\'' +
                 ", table='" + table + '\'' +
+                ", timestamp='" + timestamp + '\'' +
                 '}';
     }
 }

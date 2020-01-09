@@ -28,6 +28,11 @@ public class BinaryLogConfigVO {
 
     private String binLogClientSet;
 
+    private Integer version;
+
+    private String dataSourceType;
+
+
     public BinaryLogConfigVO(BinaryLogConfig config) {
         this.namespace = config.getNamespace();
         this.host = config.getHost();
@@ -39,6 +44,15 @@ public class BinaryLogConfigVO {
         this.active = config.isActive();
         this.binLogClientSet = config.getBinLogClientSet();
         this.binLogStatusKey = config.getBinLogStatusKey();
+        this.version = config.getVersion();
+        this.dataSourceType = config.getDataSourceType();
+    }
+    public String getDataSourceType() {
+        return dataSourceType;
+    }
+
+    public void setDataSourceType(String dataSourceType) {
+        this.dataSourceType = dataSourceType;
     }
 
     public String getNamespace() {
@@ -119,5 +133,13 @@ public class BinaryLogConfigVO {
 
     public void setBinLogClientSet(String binLogClientSet) {
         this.binLogClientSet = binLogClientSet;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

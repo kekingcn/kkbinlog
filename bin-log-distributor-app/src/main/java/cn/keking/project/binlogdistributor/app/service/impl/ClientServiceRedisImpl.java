@@ -1,16 +1,17 @@
 package cn.keking.project.binlogdistributor.app.service.impl;
 
-import cn.keking.project.binlogdistributor.app.config.BinaryLogConfig;
+import cn.keking.project.binlogdistributor.app.config.BinaryLogConfigContainer;
 import cn.keking.project.binlogdistributor.app.service.*;
+import cn.keking.project.binlogdistributor.app.util.Result;
 import cn.keking.project.binlogdistributor.param.enums.Constants;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
 import cn.keking.project.binlogdistributor.param.model.dto.EventBaseDTO;
 import cn.keking.project.binlogdistributor.param.model.dto.EventBaseErrDTO;
+import cn.keking.project.binlogdistributor.pub.DataPublisher;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.http.client.domain.QueueInfo;
 import org.redisson.api.RMap;
-import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.JsonJacksonMapCodec;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,43 +32,46 @@ public class ClientServiceRedisImpl implements ClientService {
     RedissonClient redissonClient;
 
     @Autowired
-    private KafkaService kafkaService;
-
-    @Autowired
     private RabbitMQService rabbitMQService;
 
     @Autowired
-    private BinLogClientFactory binLogClientFactory;
+    private BinaryLogConfigContainer binaryLogConfigContainer;
+
+    @Autowired
+    private EtcdService etcdService;
+
+    @Autowired
+    private DataPublisher dataPublisher;
+
+    @Autowired
+    private KafkaService kafkaService;
 
     @Override
-    public void addClient(ClientInfo clientInfo) {
+    public void addClient(ClientInfo clientInfo, Integer partitions, Integer replication) {
 
-        String namespace = clientInfo.getNamespace();
+        etcdService.addBinLogConsumerClient(clientInfo);
 
-        BinaryLogConfig config = binLogClientFactory.getBinaryLogConfig(namespace);
-        RSet<ClientInfo> clientSet = redissonClient.getSet(keyPrefix(namespace, config.getBinLogClientSet()));
-        clientSet.add(clientInfo);
-
-        BinLogEventHandlerFactory binLogEventHandlerFactory = binLogClientFactory.getBinLogEventHandlerFactory(namespace);
-        binLogEventHandlerFactory.addClientLocal(clientInfo);
         if(ClientInfo.QUEUE_TYPE_KAFKA.equals(clientInfo.getQueueType())){
-            kafkaService.createKafkaTopic(clientInfo);
+            kafkaService.createKafkaTopic(clientInfo, partitions, replication);
         }
+
     }
 
     @Override
     public List<ClientInfo> listClient(String queryType) {
 
-        return binLogClientFactory
-                .getConfigList()
-                .stream()
-                .map(config -> redissonClient.getSet(keyPrefix(config.getNamespace(), config.getBinLogClientSet())))
-                .flatMap(RSet::stream)
-                .map(object -> (ClientInfo)object)
-                .filter(clientInfo -> queryType == null ? true : queryType.equals(clientInfo.getQueueType()))
-                .sorted(Comparator.comparing(ClientInfo::getNamespace))
-                .collect(Collectors.toList());
+        return etcdService.listBinLogConsumerClient(queryType);
+    }
 
+    @Override
+    public Map<String, List<ClientInfo>> listClientMap() {
+
+        List<ClientInfo> clientInfos = listClient(null);
+        if(clientInfos == null || clientInfos.isEmpty()) {
+            return new HashMap<>();
+        } else {
+            return clientInfos.stream().collect(Collectors.groupingBy(ClientInfo::getKey));
+        }
     }
 
     @Override
@@ -84,32 +88,14 @@ public class ClientServiceRedisImpl implements ClientService {
     @Override
     public void deleteClient(ClientInfo clientInfo) {
 
-        String namespace = clientInfo.getNamespace();
-
-        BinaryLogConfig config = binLogClientFactory.getBinaryLogConfig(namespace);
-        RSet<ClientInfo> clientSet = redissonClient.getSet(keyPrefix(namespace, config.getBinLogClientSet()));
-        clientSet.remove(clientInfo);
-
-        BinLogEventHandlerFactory binLogEventHandlerFactory = binLogClientFactory.getBinLogEventHandlerFactory(namespace);
-        binLogEventHandlerFactory.deleteClient(clientInfo);
+        etcdService.removeBinLogConsumerClient(clientInfo);
     }
 
     @Override
     public String getLogStatus() {
 
-         List<Map<String, Object>> res = binLogClientFactory
-                .getConfigList()
-                .stream()
-                .map(config -> {
-                    String key = keyPrefix(config.getNamespace(), config.getBinLogStatusKey());
-                    RMap<String, Object> rMap = redissonClient.getMap(key);
-                    Map<String, Object> map = new HashMap<>(rMap);
-                    map.put("namespace", config.getNamespace());
-                    return map;
-                })
-                .collect(Collectors.toList());
-
-         return JSONArray.toJSONString(res);
+        List<Map<String, Object>> res = etcdService.listBinLogStatus();
+        return JSONArray.toJSONString(res);
     }
 
     @Override
@@ -169,18 +155,36 @@ public class ClientServiceRedisImpl implements ClientService {
     @Override
     public List<String> listNamespace() {
 
-        return binLogClientFactory.getNamespaceList();
+        return binaryLogConfigContainer.getNamespaceList();
     }
 
-    private String keyPrefix(String namespace, String key) {
+    @Override
+    public Result deleteTopic(String clientInfoKey) {
 
-        StringBuilder builder = new StringBuilder();
+        List<ClientInfo> clientInfos = etcdService.listBinLogConsumerClientByKey(clientInfoKey);
 
-        return builder
-                .append(Constants.REDIS_PREFIX)
-                .append(namespace)
-                .append("::")
-                .append(key)
-                .toString();
+        // 从EventHandler的发送列表中删除
+        etcdService.removeBinLogConsumerClient(clientInfos);
+
+        // 刪除对应队列中的topic
+        Set<String> clientInfoSet = new HashSet<>();
+        Iterator<ClientInfo> iterator = clientInfos.iterator();
+        while(iterator.hasNext()) {
+            ClientInfo clientInfo = iterator.next();
+            String identify = clientInfo.getQueueType() + clientInfo.getKey();
+            if(!clientInfoSet.add(identify)) {
+                iterator.remove();
+            }
+        }
+
+        int deleteSum =clientInfos.size();
+        int successCount = dataPublisher.deletePublishTopic(clientInfos);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("deleteSum", deleteSum);
+        jsonObject.put("successCount", successCount);
+        Result result = new Result(Result.SUCCESS, jsonObject.toJSONString());
+
+        return result;
     }
 }

@@ -1,7 +1,5 @@
-package cn.keking.project.binlogdistributor.app.service.impl;
+package cn.keking.project.binlogdistributor.app.service.binlog;
 
-import cn.keking.project.binlogdistributor.app.service.BinLogEventContext;
-import cn.keking.project.binlogdistributor.app.service.BinLogEventHandler;
 import com.github.shyiko.mysql.binlog.event.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

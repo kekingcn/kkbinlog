@@ -1,6 +1,7 @@
 package cn.keking.project.binlogdistributor.app.util;
 
 import cn.keking.project.binlogdistributor.param.model.dto.EventBaseDTO;
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rabbitmq.http.client.domain.*;
@@ -20,10 +21,11 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
@@ -574,7 +576,6 @@ public class RabbitMQHttpClient {
                 .json()
                 .serializationInclusion(JsonInclude.Include.NON_NULL);
         xs.add(new MappingJackson2HttpMessageConverter(bldr.build()));
-        xs.add(new StringHttpMessageConverter());
         return xs;
     }
 
@@ -593,7 +594,7 @@ public class RabbitMQHttpClient {
         }
         final HttpClientBuilder bldr = HttpClientBuilder.create().
                 setDefaultCredentialsProvider(getCredentialsProvider(url, theUser, thePassword));
-
+        bldr.setDefaultHeaders(Arrays.asList(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json")));
         if (sslConnectionSocketFactory != null) {
             bldr.setSSLSocketFactory(sslConnectionSocketFactory);
         }
@@ -673,15 +674,10 @@ public class RabbitMQHttpClient {
     }
 
     public List<EventBaseDTO> getMessageList(String vhost, String clientId, long count) {
-        String bodyStr = "{\"count\":" + count + ",\"requeue\":true,\"encoding\":\"base64\", \"ackmode\": \"ack_requeue_true\"}";
+        String bodyStr = "{\"count\":" + count + ",\"requeue\":true,\"encoding\":\"base64\"}";
+        Map<String, String> body = JSON.parseObject(bodyStr, Map.class);
         final URI uri = uriWithPath("./queues/" + encodePathSegment(vhost) + "/" + encodePathSegment(clientId) + "/get");
-
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.setContentType(MediaType.TEXT_PLAIN);
-        HttpEntity<String> entity = new HttpEntity<>(bodyStr, headers);
-
-        ResponseEntity<List> result= rt.postForEntity(uri, entity, List.class);
+        ResponseEntity<List> result= rt.postForEntity(uri, body, List.class);
         List<EventBaseDTO> resultList = new ArrayList<>();
         List list = result.getBody();
         try {

@@ -57,4 +57,13 @@ public class DataPublisherRabbitMQImpl implements DataPublisherRabbitMQ {
         amqpTemplate.convertAndSend(notifyExchange.getName(),queueName, msg);
     }
 
+    @Override
+    public boolean deleteTopic(String topicName) {
+        Queue queue = new Queue(topicName, true, false, true);
+        amqpAdmin.declareQueue(queue);
+        Binding binding = BindingBuilder.bind(queue).to(dataExchange).with(topicName);
+        amqpAdmin.declareBinding(binding);
+        return amqpAdmin.deleteQueue(topicName);
+    }
+
 }

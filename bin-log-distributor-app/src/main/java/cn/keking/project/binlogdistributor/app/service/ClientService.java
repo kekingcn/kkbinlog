@@ -1,8 +1,10 @@
 package cn.keking.project.binlogdistributor.app.service;
 
+import cn.keking.project.binlogdistributor.app.util.Result;
 import cn.keking.project.binlogdistributor.param.model.ClientInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhenhui
@@ -15,7 +17,7 @@ public interface ClientService {
      *
      * @param clientInfo
      */
-    void addClient(ClientInfo clientInfo);
+    void addClient(ClientInfo clientInfo, Integer partitions, Integer replication);
 
     /**
      * 客户端订阅信息
@@ -23,6 +25,13 @@ public interface ClientService {
      * @return
      */
     List<ClientInfo> listClient(String queryType);
+
+    /**
+     * 客户端订阅信息
+     *
+     * @return
+     */
+    Map<String, List<ClientInfo>> listClientMap();
 
     /**
      * 列出所有应用的错误队列
@@ -58,4 +67,6 @@ public interface ClientService {
      * 获取所有的namespace
      */
     List<String> listNamespace();
+
+    Result deleteTopic(String clientInfoKey);
 }

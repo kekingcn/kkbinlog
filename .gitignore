@@ -24,5 +24,7 @@ nbdist/
 
 #本地日志输出
 logs/
-
-.groovy
+#具体环境配置文件
+#application-dev.properties
+#application-uat.properties
+#application-prod.properties

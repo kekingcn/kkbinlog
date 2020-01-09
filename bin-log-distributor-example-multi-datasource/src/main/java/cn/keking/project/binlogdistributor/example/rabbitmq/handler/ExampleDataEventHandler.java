@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
  *   NONE -> 无序
  */
 @Service
-@HandleDatabaseEvent(database = "world", table = "city", events = {DatabaseEvent.WRITE_ROWS,DatabaseEvent.UPDATE_ROWS, DatabaseEvent.DELETE_ROWS},lockLevel = LockLevel.TABLE)
+@HandleDatabaseEvent(database = "test_binlog", table = "user", events = {DatabaseEvent.WRITE_ROWS,DatabaseEvent.UPDATE_ROWS, DatabaseEvent.DELETE_ROWS},lockLevel = LockLevel.TABLE)
 public class ExampleDataEventHandler implements DatabaseEventHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExampleDataEventHandler.class);

@@ -5,7 +5,7 @@ import axios from 'axios';
  * @type {string}
  */
 
-import {backendUrl} from '../config'
+import {backendUrl,apiBaseUrl} from '../config'
 
 /**
  * 获取应用列表
@@ -14,6 +14,15 @@ import {backendUrl} from '../config'
  */
 export const getClientList=params=>{
   return axios.get(`${backendUrl}client/list`,{params:params})
+}
+
+/**
+ * 获取应用列表
+ * @param params
+ * @returns {AxiosPromise<any>}
+ */
+export const getClientMap=params=>{
+  return axios.get(`${backendUrl}client/listClientMap`,{params:params})
 }
 
 /**
@@ -64,6 +73,15 @@ export const addClient=params=>{
 export const  deleteClient=params=> {
   return axios.post(`${backendUrl}client/delete`,params).then(res=>res.data)
 }
+
+/**
+ * 删除通道topic
+ * @param params
+ * @returns {Promise.<TResult>}
+ */
+export const deleteTopic =params=> {
+  return axios.get(`${backendUrl}client/deleteTopic`,{params:params})
+}
 /**
  * 获取日志文件的所处状态
  * @param params
@@ -82,6 +100,11 @@ export const getqueuesize=params=>{
 
 export const deleteFromQueue=params=> {
   return axios.get(`${backendUrl}client/deleteFromQueue`, {params: params});
+};
+
+//接入授权登录
+export const requestLogin = params => {
+  return axios.post(`${apiBaseUrl}/yudian_authz/oauth/token`, params).then(res => res.data);
 };
 
 export const getNamespaceList = params=>{
@@ -107,3 +130,7 @@ export const persistDatasource = params => {
 export const removeDatasource = params => {
   return axios.post(`${backendUrl}datasource/remove`, params);
 }
+
+export const getServiceStatus = params=>{
+  return axios.get(`${backendUrl}datasource/service-status`, {params: params});
+};

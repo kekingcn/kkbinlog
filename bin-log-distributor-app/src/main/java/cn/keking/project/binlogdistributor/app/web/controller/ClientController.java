@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -32,6 +33,8 @@ public class ClientController {
     public Result add(@RequestBody String data) {
         JSONObject jsonObject = JSON.parseObject(data);
         JSONArray databaseEventList = jsonObject.getJSONArray("databaseEvent");
+        Integer partitions = jsonObject.getInteger("partitions");
+        Integer replication = jsonObject.getInteger("replication");
         for (int i = 0; i < databaseEventList.size(); i++) {
             JSONObject object = JSON.parseObject(data);
             object.put("databaseEvent", databaseEventList.getString(i));
@@ -45,7 +48,8 @@ public class ClientController {
                     clientInfo.getNamespace(),
                     clientInfo.getDatabaseName(),
                     clientInfo.getTableName(), clientInfo.getDatabaseEvent(), clientInfo.getLockLevel(), clientInfo.getColumnName());
-            clientService.addClient(clientInfo);
+
+            clientService.addClient(clientInfo, partitions, replication);
         }
         return new Result(Result.SUCCESS, "添加成功");
     }
@@ -54,8 +58,17 @@ public class ClientController {
     public Result addAll(@RequestBody String data) {
         log.info(data);
         List<ClientInfo> clientInfos = JSON.parseArray(data, ClientInfo.class);
-        clientInfos.stream().forEach(clientService::addClient);
+        clientInfos.stream().forEach(clientInfo -> clientService.addClient(clientInfo, null, null));
         return new Result(Result.SUCCESS, "添加成功");
+    }
+
+    /**
+     * 列出所有队列
+     * @return
+     */
+    @RequestMapping(value = "/listClientMap", method = GET)
+    public Map<String, List<ClientInfo>> listClientMap() {
+        return clientService.listClientMap();
     }
 
     /**
@@ -115,7 +128,7 @@ public class ClientController {
      * @return
      */
     @RequestMapping(value = "/getqueuesize", method = GET)
-    public String getQueueSize(String clientName,String type,Integer page) {
+    public String getQueueSize(String clientName,String type,int page) {
         return clientService.getqueuesize(clientName,type,page);
     }
     /**
@@ -143,6 +156,12 @@ public class ClientController {
     public List<String> namespaceList() {
 
         return clientService.listNamespace();
+    }
+
+    @GetMapping("/deleteTopic")
+    public Result deleteTopic(String clientInfoKey) {
+
+        return clientService.deleteTopic(clientInfoKey);
     }
 }
 

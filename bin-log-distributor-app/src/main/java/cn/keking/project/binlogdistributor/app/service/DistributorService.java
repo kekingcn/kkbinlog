@@ -1,6 +1,7 @@
 package cn.keking.project.binlogdistributor.app.service;
 
 import cn.keking.project.binlogdistributor.app.config.BinaryLogConfig;
+import cn.keking.project.binlogdistributor.app.model.ServiceStatus;
 import cn.keking.project.binlogdistributor.app.model.vo.BinaryLogConfigVO;
 
 import java.util.List;
@@ -17,9 +18,15 @@ public interface DistributorService {
 
     boolean removeDatasourceConfig(String namespace);
 
+    void submitBinLogDistributeTask(BinaryLogConfig config);
+
+    void stopBinLogDistributeTask(String namespace);
+
     List<BinaryLogConfigVO> getAllConfigs();
 
-    boolean startDatasource(String namespace);
+    boolean startDatasource(String namespace, String delegatedIp);
 
     boolean stopDatasource(String namespace);
+
+    List<ServiceStatus> getServiceStatus();
 }

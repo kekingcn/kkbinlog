@@ -19,6 +19,10 @@ public class BinaryLogConfig {
     private boolean deletable = false;
 
     private volatile boolean active = false;
+    /**
+     * 版本号，避免config状态变更错误
+     */
+    private Integer version = 0;
 
     /**
      * 在redis中保存状态的key名称
@@ -28,6 +32,19 @@ public class BinaryLogConfig {
      * 在redis中保存状态的key名称
      */
     private String binLogClientSet = "binLogClientSet";
+    /**
+     * 订阅的数据源类型，支持MySQL、MongoDB。默认为MySQL
+     */
+    private String dataSourceType = "MySQL";
+
+
+    public String getDataSourceType() {
+        return dataSourceType;
+    }
+
+    public void setDataSourceType(String dataSourceType) {
+        this.dataSourceType = dataSourceType;
+    }
 
     public String getHost() {
         return host;
@@ -123,5 +140,13 @@ public class BinaryLogConfig {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <appender name="consoleRolling" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{35} -%msg%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="cn.keking.project.binlogdistributor.app.util.leaderselector" level="DEBUG">
+        <appender-ref ref="consoleRolling"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="consoleRolling"/>
+    </root>
+</configuration>

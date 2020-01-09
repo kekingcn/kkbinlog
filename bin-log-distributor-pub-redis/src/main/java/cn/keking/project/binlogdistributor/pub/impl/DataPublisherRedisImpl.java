@@ -32,4 +32,10 @@ public class DataPublisherRedisImpl {
         RTopic<String> rTopic = redissonClient.getTopic(notifier);
         rTopic.publish(dataKey);
     }
+
+    public boolean deleteTopic(String topicName) {
+
+        long count = redissonClient.getKeys().delete(topicName);
+        return count > 0;
+    }
 }

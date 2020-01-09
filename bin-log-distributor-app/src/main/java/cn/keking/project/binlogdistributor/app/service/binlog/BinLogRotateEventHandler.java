@@ -1,13 +1,10 @@
-package cn.keking.project.binlogdistributor.app.service.impl;
+package cn.keking.project.binlogdistributor.app.service.binlog;
 
-import cn.keking.project.binlogdistributor.app.service.BinLogEventContext;
-import cn.keking.project.binlogdistributor.app.service.BinLogEventHandler;
+import cn.keking.project.binlogdistributor.app.service.EtcdService;
 import com.github.shyiko.mysql.binlog.event.Event;
 import com.github.shyiko.mysql.binlog.event.RotateEventData;
-import org.redisson.api.RMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 /**
  * RotateEvent，主要是更新文件位置
@@ -27,10 +24,8 @@ public class BinLogRotateEventHandler extends BinLogEventHandler {
     @Override
     public void handle(Event event) {
         RotateEventData d = event.getData();
-        String binLogStatusKey = context.getBinaryLogConfig().getBinLogStatusKey();
-        RMap<String, Object> binLogStatus = context.getRedissonClient().getMap(keyPrefix(binLogStatusKey));
-        binLogStatus.put("binlogFilename", d.getBinlogFilename());
-        binLogStatus.put("binlogPosition", d.getBinlogPosition());
+        EtcdService etcdService = context.getEtcdService();
+        etcdService.updateBinLogStatus(d.getBinlogFilename(), d.getBinlogPosition(), context.getBinaryLogConfig(), System.currentTimeMillis()); // event.header.timestamp = 0
     }
 
 }

@@ -26,8 +26,21 @@ public class KafkaServiceImpl implements KafkaService {
     @Autowired
     private KafkaConfig kafkaConfig;
 
+    /**
+     * 创建Topic
+     * @param clientInfo
+     */
     @Override
-    public void createTopic(String topicName, int partitions, int replication) {
+    public void createKafkaTopic(ClientInfo clientInfo, Integer partitions, Integer replication){
+        String topicName = DataPublisher.topicName(clientInfo);
+        if(partitions == null || replication == null) {
+            createTopic(topicName);
+        } else {
+            createTopic(topicName, partitions, replication);
+        }
+    }
+
+    private void createTopic(String topicName, Integer partitions, Integer replication) {
         Boolean isExists =AdminUtils.topicExists(zkClient,topicName);
         if(!isExists){
             AdminUtils.createTopic(zkClient,topicName,partitions,replication,new Properties());
@@ -37,17 +50,5 @@ public class KafkaServiceImpl implements KafkaService {
     private void createTopic(String topicName){
          createTopic(topicName,kafkaConfig.getPartitions(),kafkaConfig.getReplications());
     }
-
-    /**
-     * 创建
-     * @param clientInfo
-     */
-    @Override
-    public void createKafkaTopic(ClientInfo clientInfo){
-        String topicName = DataPublisher.topicName(clientInfo);
-        createTopic(topicName);
-    }
-
-
 
 }

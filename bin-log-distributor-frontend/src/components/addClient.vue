@@ -1,5 +1,5 @@
 <template>
-  <el-form :model="client" :rules="rules" ref="ruleForm" label-width="80px" style="width: 600px; margin: 40px auto;">
+  <el-form :model="client" :rules="rules" ref="ruleForm" label-width="100px" style="width: 600px; margin: 40px auto;">
     <el-form-item prop="clientId" label="应用ID">
       <el-input v-model="client.clientId" class="auto"></el-input>
     </el-form-item>
@@ -13,12 +13,14 @@
         </el-option>
       </el-select>
     </el-form-item>
+
     <el-form-item prop="databaseName" label="数据库">
       <el-input v-model="client.databaseName" class="auto"></el-input>
     </el-form-item>
     <el-form-item prop="tableName" label="表名">
       <el-input v-model="client.tableName" class="auto" ></el-input>
     </el-form-item>
+
     <el-form-item label="表操作" prop="databaseEvent">
       <el-checkbox-group v-model="client.databaseEvent" @change="checkBoxChange">
         <el-checkbox label="WRITE_ROWS">增加操作</el-checkbox>
@@ -27,11 +29,17 @@
       </el-checkbox-group>
     </el-form-item>
     <el-form-item label="队列类型" prop="queueType">
-      <el-radio-group v-model="client.queueType">
+      <el-radio-group v-model="client.queueType" @change="queueTypeChange">
         <el-radio :label="'redis'">redis</el-radio>
         <el-radio :label="'rabbit'">rabbit</el-radio>
         <el-radio :label="'kafka'">kafka</el-radio>
       </el-radio-group>
+    </el-form-item>
+    <el-form-item prop="partitions" v-show="isKafkaQueueType" label="kafka分区">
+      <el-input v-model="client.partitions" class="auto"></el-input>
+    </el-form-item>
+    <el-form-item prop="replication" v-show="isKafkaQueueType" label="kafka副本">
+      <el-input v-model="client.replication" class="auto"></el-input>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="addclient('ruleForm')" class="auto">提交</el-button>
@@ -49,7 +57,9 @@
           databaseName: '',
           tableName: '',
           databaseEvent: ['WRITE_ROWS', 'UPDATE_ROWS', 'DELETE_ROWS'],
-          queueType: 'kafka'
+          queueType: 'kafka',
+          replication: '',
+          partitions: ''
         },
         rules: {
           clientId: [{required: true, message: '请输入应用id', trigger: 'blur'}],
@@ -59,7 +69,8 @@
           databaseEvent: [{required: true, message: '请勾选事件类型', trigger: 'blur'}],
           queueType: [{required: true, message: '请选择队列类型', trigger: 'blur'}]
         },
-        namespaceList: []
+        namespaceList: [],
+        isKafkaQueueType: true
       }
     },
     methods: {
@@ -82,6 +93,9 @@
       },
       checkBoxChange(list) {
         this.client.databaseEvent = list;
+      },
+      queueTypeChange() {
+        this.isKafkaQueueType = this.client.queueType === 'kafka'
       }
     },
     mounted() {

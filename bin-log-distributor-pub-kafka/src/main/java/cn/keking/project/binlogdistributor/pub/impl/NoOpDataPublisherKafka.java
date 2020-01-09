@@ -13,7 +13,13 @@ public class NoOpDataPublisherKafka implements DataPublisherKafka {
     private static final Logger logger = LoggerFactory.getLogger(DataPublisherKafka.class);
 
     @Override
-    public void doPublish(String clientId, String dataKey, EventBaseDTO data) {
-        logger.warn("System don't support kafka data publisher, however it has been subscribed by client:[{}]", clientId);
+    public boolean deleteTopic(String topicName) {
+        logger.warn("System don't support kafka data publisher, however it has been commanded to delete topic:[{}]", topicName);
+        return false;
+    }
+
+    @Override
+    public void doPublish(String topic, Object data) {
+        logger.warn("System don't support kafka data publisher, however it has been subscribed");
     }
 }

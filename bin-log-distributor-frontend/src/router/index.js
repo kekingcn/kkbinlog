@@ -47,7 +47,7 @@ export default new Router({
           path:'/datasourceList',
           name:'数据源列表',
           component:datasourceList
-        },
+        }
       ]
     }
   ]

@@ -12,31 +12,31 @@ public class UpdateRow implements Serializable {
 
     private static final long serialVersionUID = -2966621316372838979L;
 
-    private Map<String, Serializable> beforeRowMap;
-    private Map<String, Serializable> afterRowMap;
+    private Map<String, Object> beforeRowMap;
+    private Map<String, Object> afterRowMap;
 
     public UpdateRow() {
 
     }
 
-    public UpdateRow(Map<String, Serializable> beforeRowMap, Map<String, Serializable> afterRowMap) {
+    public UpdateRow(Map<String, Object> beforeRowMap, Map<String, Object> afterRowMap) {
         this.beforeRowMap = beforeRowMap;
         this.afterRowMap = afterRowMap;
     }
 
-    public Map<String, Serializable> getBeforeRowMap() {
+    public Map<String, Object> getBeforeRowMap() {
         return beforeRowMap;
     }
 
-    public void setBeforeRowMap(Map<String, Serializable> beforeRowMap) {
+    public void setBeforeRowMap(Map<String, Object> beforeRowMap) {
         this.beforeRowMap = beforeRowMap;
     }
 
-    public Map<String, Serializable> getAfterRowMap() {
+    public Map<String, Object> getAfterRowMap() {
         return afterRowMap;
     }
 
-    public void setAfterRowMap(Map<String, Serializable> afterRowMap) {
+    public void setAfterRowMap(Map<String, Object> afterRowMap) {
         this.afterRowMap = afterRowMap;
     }
 

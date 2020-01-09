@@ -15,22 +15,22 @@ public class WriteRowsDTO extends EventBaseDTO {
 
     private static final long serialVersionUID = 6443935897277661139L;
 
-    private List<Map<String, Serializable>> rowMaps;
+    private List<Map<String, Object>> rowMaps;
 
     public WriteRowsDTO() {
     }
 
-    public WriteRowsDTO(EventBaseDTO eventBaseDTO, List<Map<String, Serializable>> rowMaps) {
+    public WriteRowsDTO(EventBaseDTO eventBaseDTO, List<Map<String, Object>> rowMaps) {
         super(eventBaseDTO);
         super.setEventType(DatabaseEvent.WRITE_ROWS);
         this.rowMaps = rowMaps;
     }
 
-    public List<Map<String, Serializable>> getRowMaps() {
+    public List<Map<String, Object>> getRowMaps() {
         return rowMaps;
     }
 
-    public void setRowMaps(List<Map<String, Serializable>> rowMaps) {
+    public void setRowMaps(List<Map<String, Object>> rowMaps) {
         this.rowMaps = rowMaps;
     }
 

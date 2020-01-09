@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author zhenhui
@@ -36,10 +37,18 @@ public class DataPublisher {
     @Autowired
     private DataPublisherKafka kafkaPublisher;
 
+    private AtomicLong publishCount = new AtomicLong(0);
+
+    private long lastPublishCount = 0;
+
+    public void pushToKafka(String topic,Object data){
+        kafkaPublisher.doPublish(topic, data);
+    }
+
     public void publish(Set<ClientInfo> clientInfos, EventBaseDTO data) {
         clientInfos.forEach(clientInfo -> {
             if (LockLevel.COLUMN.equals(clientInfo.getLockLevel())) {
-                List<Map<String, Serializable>> rowMaps;
+                List<Map<String, Object>> rowMaps;
                 //如果锁是列级别的特殊处理
                 switch (clientInfo.getDatabaseEvent()) {
                     case UPDATE_ROWS:
@@ -47,10 +56,10 @@ public class DataPublisher {
                         UpdateRowsDTO udto = (UpdateRowsDTO) data;
                         List<UpdateRow> rows = udto.getRows();
                         rows.forEach(updateRow -> {
-                            Map<String, Serializable> bm = updateRow.getBeforeRowMap();
-                            Map<String, Serializable> am = updateRow.getAfterRowMap();
-                            Serializable bCloumn = bm.get(clientInfo.getColumnName()) == null ? "NULL" : bm.get(clientInfo.getColumnName());
-                            Serializable aCloumn = am.get(clientInfo.getColumnName()) == null ? "NULL" : am.get(clientInfo.getColumnName());
+                            Map<String, Object> bm = updateRow.getBeforeRowMap();
+                            Map<String, Object> am = updateRow.getAfterRowMap();
+                            Object bCloumn = bm.get(clientInfo.getColumnName()) == null ? "NULL" : bm.get(clientInfo.getColumnName());
+                            Object aCloumn = am.get(clientInfo.getColumnName()) == null ? "NULL" : am.get(clientInfo.getColumnName());
                             if (bCloumn.equals(aCloumn)) {
                                 //如果两个一致，即变更的不是作为key的列
                                 doPublish(clientInfo, DATA.concat(clientInfo.getKey()).concat(bCloumn.toString()), new UpdateRowsDTO(data, Arrays.asList(updateRow)));
@@ -66,7 +75,7 @@ public class DataPublisher {
                         WriteRowsDTO wdto = (WriteRowsDTO) data;
                         rowMaps = wdto.getRowMaps();
                         rowMaps.forEach(r -> {
-                            Serializable cn = r.get(clientInfo.getColumnName()) == null ? "NULL" : r.get(clientInfo.getColumnName());
+                            Object cn = r.get(clientInfo.getColumnName()) == null ? "NULL" : r.get(clientInfo.getColumnName());
                             doPublish(clientInfo, DATA.concat(clientInfo.getKey()).concat(cn.toString()), new WriteRowsDTO(data, Arrays.asList(r)));
                         });
                         break;
@@ -74,7 +83,7 @@ public class DataPublisher {
                         DeleteRowsDTO ddto = (DeleteRowsDTO) data;
                         rowMaps = ddto.getRowMaps();
                         rowMaps.forEach(r -> {
-                            Serializable cn = r.get(clientInfo.getColumnName()) == null ? "NULL" : r.get(clientInfo.getColumnName());
+                            Object cn = r.get(clientInfo.getColumnName()) == null ? "NULL" : r.get(clientInfo.getColumnName());
                             doPublish(clientInfo, DATA.concat(clientInfo.getKey()).concat(cn.toString()), new DeleteRowsDTO(data, Arrays.asList(r)));
                         });
                         break;
@@ -85,6 +94,8 @@ public class DataPublisher {
                 //其他级别直接发布
                 doPublish(clientInfo, topicName(clientInfo), data);
             }
+
+            publishCount.incrementAndGet();
         });
     }
 
@@ -94,7 +105,7 @@ public class DataPublisher {
         } else if (ClientInfo.QUEUE_TYPE_RABBIT.equals(clientInfo.getQueueType())) {
             rabbitPublisher.doPublish(clientInfo.getClientId(), dataKey, data);
         } else if(ClientInfo.QUEUE_TYPE_KAFKA.equals(clientInfo.getQueueType())){
-            kafkaPublisher.doPublish(clientInfo.getClientId(), dataKey, data);
+            kafkaPublisher.doPublish(dataKey, data);
         }else {
             LOGGER.warn("未成功分发数据，没有相应的分发队列实现：{}", data);
         }
@@ -107,5 +118,41 @@ public class DataPublisher {
      */
     public static String topicName(ClientInfo clientInfo){
         return DATA.concat(clientInfo.getKey());
+    }
+
+
+    public int deletePublishTopic(List<ClientInfo> clientInfos) {
+
+        int successCount = 0;
+        for(ClientInfo clientInfo : clientInfos) {
+            boolean deleteRes = false;
+            if (ClientInfo.QUEUE_TYPE_REDIS.equals(clientInfo.getQueueType())) {
+                deleteRes = redisPublisher.deleteTopic(topicName(clientInfo));
+            } else if (ClientInfo.QUEUE_TYPE_RABBIT.equals(clientInfo.getQueueType())) {
+                deleteRes = rabbitPublisher.deleteTopic(topicName(clientInfo));
+            } else if(ClientInfo.QUEUE_TYPE_KAFKA.equals(clientInfo.getQueueType())){
+                deleteRes = kafkaPublisher.deleteTopic(topicName(clientInfo));
+            }else {
+                LOGGER.warn("未成功删除topic，没有相应的分发队列实现：{}", clientInfos);
+            }
+            if (deleteRes) {
+                successCount++;
+            }
+        }
+
+        return successCount;
+    }
+
+    public long getPublishCount() {
+        return publishCount.get();
+    }
+
+    public long publishCountSinceLastTime() {
+        long total = publishCount.get();
+        long res =  total - lastPublishCount;
+
+        lastPublishCount = total;
+
+        return res;
     }
 }

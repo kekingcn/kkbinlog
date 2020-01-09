@@ -8,7 +8,5 @@ import cn.keking.project.binlogdistributor.param.model.ClientInfo;
  **/
 public interface KafkaService {
 
-    void createTopic(String topicName, int partitions, int replication);
-
-    void createKafkaTopic(ClientInfo clientInfo);
+    void createKafkaTopic(ClientInfo clientInfo, Integer partitions, Integer replication);
 }

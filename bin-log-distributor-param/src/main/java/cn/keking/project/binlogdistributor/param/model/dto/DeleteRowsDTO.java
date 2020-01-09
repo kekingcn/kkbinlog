@@ -15,22 +15,22 @@ public class DeleteRowsDTO extends EventBaseDTO implements Serializable {
 
     private static final long serialVersionUID = -958814764356190600L;
 
-    private List<Map<String, Serializable>> rowMaps;
+    private List<Map<String, Object>> rowMaps;
 
     public DeleteRowsDTO() {
     }
 
-    public DeleteRowsDTO(EventBaseDTO eventBaseDTO, List<Map<String, Serializable>> rowMaps) {
+    public DeleteRowsDTO(EventBaseDTO eventBaseDTO, List<Map<String, Object>> rowMaps) {
         super(eventBaseDTO);
         super.setEventType(DatabaseEvent.DELETE_ROWS);
         this.rowMaps = rowMaps;
     }
 
-    public List<Map<String, Serializable>> getRowMaps() {
+    public List<Map<String, Object>> getRowMaps() {
         return rowMaps;
     }
 
-    public void setRowMaps(List<Map<String, Serializable>> rowMaps) {
+    public void setRowMaps(List<Map<String, Object>> rowMaps) {
         this.rowMaps = rowMaps;
     }
 

@@ -60,6 +60,7 @@
         this.$confirm('确认退出吗?', '提示', {
           //type: 'warning'
         }).then(() => {
+          this.$cookies.remove("keking_token");
           sessionStorage.removeItem('user');
           _this.$router.push('/login');
         }).catch(() => {
@@ -74,7 +75,7 @@
       }
     }
   }
- 
+
 </script>
 <style>
   .rightTitle{

@@ -81,7 +81,6 @@
               <el-table-column label="操作" align="center">
                 <template slot-scope="scope">
                   <el-button @click="deleteFromQueue(scope.row.uuid,item)">删除</el-button>
-                  <el-button @click="enqueueAndDelete(scope.row.table,scope.row.projNo,scope.row.cycle,scope.row.uuid,item)">同步并删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -92,7 +91,7 @@
   </el-tabs>
 </template>
 <script>
-  import {getqueuesize, getRedisClientList, getRabbitClientList, getKafkaClientList, getErrorClientList,deleteFromQueue,doSyncToHis} from '../api/api'
+  import {getqueuesize, getRedisClientList, getRabbitClientList, getKafkaClientList, getErrorClientList,deleteFromQueue} from '../api/api'
   import Vue from 'vue'
 
   export default {
@@ -226,23 +225,7 @@
           }
         });
         this.abnormalQueue = error;
-      },
-      enqueueAndDelete(table,projectNo,cycles,uuid,item){
-        doSyncToHis({
-          userName: this.sysUserName,
-          table: table,
-          projNO: projectNo,
-          cycles:cycles
-        }).then(res => {
-          if (res.data.code === 0) {
-            //同步成功后删除记录
-            this.deleteFromQueue(uuid,item)
-          } else {
-            this.$message.error(JSON.stringify(res.data))
-          }
-        });
       }
-
     },
     mounted() {
       getRedisClientList('').then((res) => {

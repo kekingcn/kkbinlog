@@ -42,11 +42,11 @@ public class BinLogTableMapEventHandler extends BinLogEventHandler {
                 while (resultSet.next()) {
                     data.addColumnName(resultSet.getString("Field"));
                 }
+                //将表id和表映射
+                context.addTableMapData(d.getTableId(), data);
             } catch (SQLException e) {
                 log.error("获取表数据错误,sql语句为{}，异常如下:{}", sql, e);
             }
-            //将表id和表映射
-            context.addTableMapData(d.getTableId(), data);
         }
     }
 }

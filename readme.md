@@ -202,8 +202,19 @@ public class DatabaseEventListener {
 }
 ```
 
-
-
 # 2.3 前端管理模块
 >前端管理服务模块是基于vue的管理各个应用监听状况的管理界面
+#### 新增MySQL数据源
+
+#### 数据源管理
+![](https://oscimg.oschina.net/oscnet/up-d00682b927661b6a9da13536546d89ffc1e.png)
+
+#### 日志进度
+![](https://oscimg.oschina.net/oscnet/up-0b311ee0cf6b0851a6ee9de998f0d03fede.png)
+
+#### 分发队列监控
+![](https://oscimg.oschina.net/oscnet/up-828e4558f279bed409ca583572f14aa3bb3.png)
+
+#### 新增数据订阅
+![](https://oscimg.oschina.net/oscnet/up-7c094efbc9fdcccc8d5e4f1e6b40b346ea8.png)
 # 3 其他
